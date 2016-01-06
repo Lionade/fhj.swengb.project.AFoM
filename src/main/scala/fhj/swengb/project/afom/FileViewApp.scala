@@ -19,7 +19,7 @@ object FileViewApp {
 
 class FileViewApp extends javafx.application.Application {
 
-  val loader = new FXMLLoader(getClass.getResource("/fhj/swengb/project/FileViewer.fxml"))
+  val loader = new FXMLLoader(getClass.getResource("/fhj/swengb/project/afom/FileViewer.fxml"))
 
   override def start(stage: Stage): Unit =
     try {
