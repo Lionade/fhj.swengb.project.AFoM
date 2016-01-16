@@ -55,7 +55,7 @@ object FileSystemModel {
     result
   }*/
 
-  def removeRecursive(path: Path): Unit = {
+  def showRecursive(path: Path): Unit = {
     Files.walkFileTree(path, new SimpleFileVisitor[Path]() {
       override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
         println(path)

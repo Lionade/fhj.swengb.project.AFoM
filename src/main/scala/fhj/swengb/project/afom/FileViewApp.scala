@@ -1,10 +1,12 @@
 package fhj.swengb.project.afom
 
 import java.io.File
+import java.net.URL
 import java.nio.file
 import java.nio.file.{Path, Paths}
+import java.util.ResourceBundle
 import javafx.application.Application
-import javafx.fxml.FXMLLoader
+import javafx.fxml.{Initializable, FXMLLoader}
 import javafx.scene.shape.Path
 import javafx.scene.shape.Path
 
@@ -46,4 +48,12 @@ class FileViewApp extends javafx.application.Application {
     } catch {
       case NonFatal(e) => e.printStackTrace()
     }
+}
+
+class FileViewController extends Initializable {
+
+  override def initialize(location: URL, resources: ResourceBundle): Unit = {
+    FileSystemModel.showRecursive(Paths.get("."))
+  }
+
 }
