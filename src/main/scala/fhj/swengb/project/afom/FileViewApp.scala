@@ -92,7 +92,7 @@ class FileViewController extends Initializable {
           for(childFile <- files){
             children.add(createNode(childFile))
           }
-          children
+          return children
         }
         FXCollections.emptyObservableList()
       }
@@ -104,7 +104,6 @@ class FileViewController extends Initializable {
     //addChilds(rootItem, new File(".").listFiles())
     val tree = new TreeView[File](rootItem)
     tree.setId("TreeView")
-
 
     scrollpane.setContent(tree)
   }
