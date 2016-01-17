@@ -63,7 +63,7 @@ class FileViewController extends Initializable {
       var isFirstTimeChildren: Boolean = true
       var isFirstTimeLeaf = true
 
-
+      // Beim ersten mal: setzen der Kinder; danach immer nur Rückgabe der Kinder
       override def getChildren: ObservableList[TreeItem[File]] = {
         if(isFirstTimeChildren){
           isFirstTimeChildren = false
@@ -72,6 +72,7 @@ class FileViewController extends Initializable {
         super.getChildren()
       }
 
+      // Beim ertsen Mal Aufruf ob es sich um Leaf handelt; danach immer nur Rückgabe ob ja oder nein
       override def isLeaf(): Boolean = {
         if(isFirstTimeLeaf){
           isFirstTimeLeaf = false
@@ -90,7 +91,7 @@ class FileViewController extends Initializable {
         if(files != null){
           val children: ObservableList[TreeItem[File]] = FXCollections.observableArrayList()
           for(childFile <- files){
-            children.add(createNode(childFile))
+            children.add(createNode(childFile)) // Rekursiv
           }
           return children
         }
