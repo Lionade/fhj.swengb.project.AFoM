@@ -1,19 +1,27 @@
 package fhj.swengb.project.afom
 
-import java.io.File
+import java.io.{IOException, File}
 import java.net.URL
-import java.nio.file
-import java.nio.file.{Path, Paths}
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{FileVisitResult, SimpleFileVisitor, Files, Path}
 import java.util.ResourceBundle
 import javafx.application.Application
-import javafx.fxml.{Initializable, FXMLLoader}
-import javafx.scene.shape.Path
-import javafx.scene.shape.Path
-
+import javafx.beans.value.ObservableValue
+import javafx.collections.{ObservableList, FXCollections}
+import javafx.event.EventHandler
+import javafx.fxml.{FXML, Initializable, FXMLLoader}
+import javafx.scene.control._
+import javafx.scene.image.{ImageView, Image}
+import javafx.scene.input.{MouseButton, ContextMenuEvent, MouseEvent}
+import javafx.scene.layout.{VBox, Pane, StackPane, BorderPane}
 import javafx.scene.{Scene, Parent}
 import javafx.stage.Stage
+import javafx.util.Callback
 
+
+import scala.collection.JavaConversions
 import scala.util.control.NonFatal
+
 
 /**
   * Created by Steve on 05.01.2016.
@@ -21,16 +29,6 @@ import scala.util.control.NonFatal
 object FileViewApp {
   def main(args: Array[String]) {
     Application.launch(classOf[FileViewApp], args: _*)
-
-
-    //FileSystemModel.removeRecursive(path)
-    //
-     val sourcePath = Paths.get("C:/test1")
-     val destinationPath  = Paths.get("C:/test2")
-     FileSystemModel.move(sourcePath, destinationPath)
-   // FileSystemModel.removeRecursive(Paths.get("C:/test1"))
-
-
   }
 }
 
@@ -51,9 +49,68 @@ class FileViewApp extends javafx.application.Application {
 }
 
 class FileViewController extends Initializable {
+  import JfxUtils._
+
+  @FXML var scrollpane: ScrollPane = _
+
+  val rootItem = createNode(new File("c:/"))
+  rootItem.setExpanded(true)
+
+
+  def createNode(f: File): TreeItem[File] = {
+    new TreeItem[File](new File(".")){
+      var isLeafx: Boolean = _
+      var isFirstTimeChildren: Boolean = true
+      var isFirstTimeLeaf = true
+
+
+      override def getChildren: ObservableList[TreeItem[File]] = {
+        if(isFirstTimeChildren){
+          isFirstTimeChildren = false
+          super.getChildren.setAll(buildChildren(this))
+        }
+        super.getChildren()
+      }
+
+      override def isLeaf(): Boolean = {
+        if(isFirstTimeLeaf){
+          isFirstTimeLeaf = false
+          val f: File = getValue()
+          isLeafx = f.isFile
+        }
+        isLeafx
+      }
+
+      def buildChildren(treeItem: TreeItem[File]): ObservableList[TreeItem[File]] = {
+        val f: File = treeItem.getValue()
+        if(f == null) FXCollections.emptyObservableList()
+        if(f.isFile()) FXCollections.emptyObservableList()
+
+        val files: Array[File] = f.listFiles()
+        if(files != null){
+          val children: ObservableList[TreeItem[File]] = FXCollections.observableArrayList()
+          for(childFile <- files){
+            children.add(createNode(childFile))
+          }
+          children
+        }
+        FXCollections.emptyObservableList()
+      }
+    }
+  }
+
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
-    FileSystemModel.showRecursive(Paths.get("."))
+    //addChilds(rootItem, new File(".").listFiles())
+    val tree = new TreeView[File](rootItem)
+    tree.setId("TreeView")
+
+
+    scrollpane.setContent(tree)
   }
+
+}
+
+object JfxUtils{
 
 }
