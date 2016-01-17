@@ -58,7 +58,7 @@ class FileViewController extends Initializable {
 
 
   def createNode(f: File): TreeItem[File] = {
-    new TreeItem[File](new File(".")){
+    new TreeItem[File](f){
       var isLeafx: Boolean = _
       var isFirstTimeChildren: Boolean = true
       var isFirstTimeLeaf = true
