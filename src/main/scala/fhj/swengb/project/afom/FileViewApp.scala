@@ -51,7 +51,7 @@ class FileViewApp extends javafx.application.Application {
 class FileViewController extends Initializable {
   import JfxUtils._
 
-  @FXML var scrollpane: ScrollPane = _
+  @FXML var treeView: TreeView[File] = _
 
   val rootItem = createNode(new File("c:/"))
   rootItem.setExpanded(true)
@@ -102,10 +102,10 @@ class FileViewController extends Initializable {
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
     //addChilds(rootItem, new File(".").listFiles())
-    val tree = new TreeView[File](rootItem)
-    tree.setId("TreeView")
+    //val tree = new TreeView[File](rootItem)
+    //tree.setId("TreeView")
 
-    scrollpane.setContent(tree)
+    treeView.setRoot(rootItem)
   }
 
 }
