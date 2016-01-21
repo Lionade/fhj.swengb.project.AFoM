@@ -1,10 +1,11 @@
 package fhj.swengb.project.afom
 
 import java.awt.event.KeyEvent
+import scala.reflect._
 import java.io.{IOException, File}
 import java.net.URL
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{FileVisitResult, SimpleFileVisitor, Files, Path}
+import java.nio.file._
 import java.util.ResourceBundle
 import javafx.application.Application
 import javafx.beans.value.ObservableValue
@@ -23,6 +24,7 @@ import javax.activation.MimetypesFileTypeMap
 
 import scala.collection.JavaConversions
 import scala.io.Source
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 
@@ -105,17 +107,13 @@ class FileViewController extends Initializable {
     }
   }
 
-  def FileToString(f: File): String ={
-    f.getName
-  }
-
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
     import JfxUtils._
 
     tree.setId("TreeView")
     tree.setEditable(true)
-    tree.setCellFactory(mkTreeCellFactory(show[File](FileToString(_))))
+    tree.setCellFactory(mkTreeCellFactory(show[File](fileToString(_))))
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
     scrollpane.setContent(tree)
   }
@@ -176,18 +174,50 @@ class TextFieldTreeCellImpl[File] extends TreeCell[File]{
 
   }
 
+  override def cancelEdit: Unit = {
+    super.cancelEdit
+    setText(getString)
+    setGraphic(getTreeItem.getGraphic)
+  }
+
+  override def updateItem(item: File, empty: Boolean): Unit ={
+    super.updateItem(item, empty)
+    if(empty){
+      setText(null)
+      setGraphic(null)
+    }
+    else{
+      if(isEditing){
+        if(txtField != null){
+          txtField.setText(getString)
+        }
+        setText(null)
+        setGraphic(txtField)
+      }
+      else{
+        setText(getString)
+        setGraphic(getTreeItem.getGraphic)
+      }
+    }
+  }
+
+
   def createTextField() = {
     txtField = new TextField(getString)
     txtField.setOnKeyReleased(new EventHandler[input.KeyEvent] {
+      val t = new File() // geht noch nicht
       override def handle(event: input.KeyEvent): Unit = {
-        if(event.getCode == KeyCode.ENTER) commitEdit(getItem) // TODO: übergabes des neuen Filename
+        if(event.getCode == KeyCode.ENTER) commitEdit(t) // TODO: übergabes des neuen Filename
+        else if(event.getCode == KeyCode.ESCAPE) cancelEdit()
       }
     })
   }
 
+
   def getString: String = {
     return if(getItem == null) "" else getItem.toString
   }
+
 
 }
 
@@ -199,10 +229,15 @@ object JfxUtils{
     }
   }
 
+  def fileToString(f: File): String ={
+    f.getName
+  }
+
+
   def show[T](typeToString: T => String)(lv: TreeView[T]): TextFieldTreeCellImpl[T] = {
 
     class newCell extends TextFieldTreeCellImpl[T] {
-      override protected def updateItem(t: T, empty: Boolean): Unit = {
+      override def updateItem(t: T, empty: Boolean): Unit = {
         super.updateItem(t, empty)
         if (t != null) {
           setText(typeToString(t))
