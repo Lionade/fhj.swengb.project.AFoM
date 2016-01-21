@@ -1,5 +1,6 @@
 package fhj.swengb.project.afom
 
+import java.awt.event.KeyEvent
 import java.io.{IOException, File}
 import java.net.URL
 import java.nio.file.attribute.BasicFileAttributes
@@ -12,9 +13,9 @@ import javafx.event.EventHandler
 import javafx.fxml.{FXML, Initializable, FXMLLoader}
 import javafx.scene.control._
 import javafx.scene.image.{ImageView, Image}
-import javafx.scene.input.{MouseButton, ContextMenuEvent, MouseEvent}
+import javafx.scene.input.{KeyCode, MouseButton, ContextMenuEvent, MouseEvent}
 import javafx.scene.layout._
-import javafx.scene.{Scene, Parent}
+import javafx.scene.{input, Scene, Parent}
 import javafx.stage.Stage
 import javafx.util.Callback
 import javax.activation.MimetypesFileTypeMap
@@ -59,7 +60,7 @@ class FileViewController extends Initializable {
 
   val rootItem = createNode(new File("c:/"))
   rootItem.setExpanded(true)
-
+  val tree = new TreeView[File](rootItem)
 
   def createNode(f: File): TreeItem[File] = {
     new TreeItem[File](f){
@@ -104,12 +105,18 @@ class FileViewController extends Initializable {
     }
   }
 
-  val tree = new TreeView[File](rootItem)
+  def FileToString(f: File): String ={
+    f.getName
+  }
+
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
-    //addChilds(rootItem, new File(".").listFiles())
+    import JfxUtils._
+
     tree.setId("TreeView")
-    tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent)
+    tree.setEditable(true)
+    tree.setCellFactory(mkTreeCellFactory(show[File](FileToString(_))))
+    tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
     scrollpane.setContent(tree)
   }
 
@@ -137,6 +144,8 @@ class FileViewController extends Initializable {
     }
   }
 
+
+
   def FileCategory(file: File):String = {
     if(textTypes.exists(file.getName.contains(_))) {
       "text"
@@ -154,6 +163,55 @@ class FileViewController extends Initializable {
 
 }
 
+class TextFieldTreeCellImpl[File] extends TreeCell[File]{
+
+  var txtField: TextField = _
+
+  override def startEdit: Unit ={
+    super.startEdit()
+    if(txtField == null) createTextField()
+    setText(null)
+    setGraphic(txtField)
+    txtField.selectAll()
+
+  }
+
+  def createTextField() = {
+    txtField = new TextField(getString)
+    txtField.setOnKeyReleased(new EventHandler[input.KeyEvent] {
+      override def handle(event: input.KeyEvent): Unit = {
+        if(event.getCode == KeyCode.ENTER) commitEdit(getItem) // TODO: übergabes des neuen Filename
+      }
+    })
+  }
+
+  def getString: String = {
+    return if(getItem == null) "" else getItem.toString
+  }
+
+}
+
 object JfxUtils{
+
+  def mkTreeCellFactory[T](f: TreeView[T] => TreeCell[T]): Callback[TreeView[T], TreeCell[T]] = {
+    new Callback[TreeView[T], TreeCell[T]] {
+      override def call(param: TreeView[T]): TreeCell[T] = f(param)
+    }
+  }
+
+  def show[T](typeToString: T => String)(lv: TreeView[T]): TextFieldTreeCellImpl[T] = {
+
+    class newCell extends TextFieldTreeCellImpl[T] {
+      override protected def updateItem(t: T, empty: Boolean): Unit = {
+        super.updateItem(t, empty)
+        if (t != null) {
+          setText(typeToString(t))
+        }
+        else setText(null)
+      }
+    }
+    new newCell()
+  }
+
 
 }
