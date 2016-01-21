@@ -116,28 +116,40 @@ class FileViewController extends Initializable {
     def handle(event: MouseEvent): Unit ={
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
       val fullPath: File = fileDirectory.getValue
-      val mimeType = new MimetypesFileTypeMap().getContentType(fullPath)
-      println(fileDirectory)
-      println("------------")
-      println(fileDirectory.isLeaf)
       if (fileDirectory.isLeaf){
-        if(mimeType.substring(0,5).equalsIgnoreCase("image")){
-          image.setImage(new Image(fullPath.toURI.toString))
-          println("Ist ein image")
-        }else {
-          var text = ""
-          for (line <- Source.fromFile(fullPath).getLines) {
-            text = text + "\n" + line.toString
-          }
-          textfield.setText(text)
-          println("+++++++++")
-          //textfield.setText(lines)
+        val fileCategory  = FileCategory(fullPath)
+        fileCategory match {
+          case "image" =>
+            image.setImage(new Image(fullPath.toURI.toString))
+          case "text" =>
+            var text = ""
+            for (line <- Source.fromFile(fullPath).getLines) {
+              text = text + "\n" + line.toString
+            }
+            textfield.setText(text)
+          case _ =>
+            println("Tableview anzeigen")
         }
       }else {
-
+        println("Tableview anzeigen")
       }
     }
   }
+
+  def FileCategory(file: File):String = {
+    if(textTypes.exists(file.getName.contains(_))) {
+      "text"
+    }
+    else if (imageTypes.exists(file.getName.contains(_))){
+      "image"
+    }
+    else{
+      "nothing"
+    }
+  }
+
+  lazy val textTypes: List[String] = List(".txt", ".css", "html", ".log", ".cfg", ".config", "scala", ".java" , ".html", ".xml", ".fxml", ".csv", ".xhtml", ".json", ".css", ".md")
+  lazy val imageTypes: List[String] = List (".jpg", ".png", ".ico", ".svg", ".bmp", ".gif")
 
 }
 
