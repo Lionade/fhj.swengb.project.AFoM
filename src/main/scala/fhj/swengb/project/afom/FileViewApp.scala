@@ -2,6 +2,7 @@ package fhj.swengb.project.afom
 
 import java.awt.event.KeyEvent
 import javafx.beans.property.{SimpleDoubleProperty, SimpleStringProperty, SimpleIntegerProperty}
+import scala.collection.immutable.IndexedSeq
 import scala.reflect._
 import java.io.{IOException, File}
 import java.net.URL
@@ -32,8 +33,8 @@ import scala.util.control.NonFatal
 
 
 /**
-  * Created by Steve on 05.01.2016.
-  */
+ * Created by Steve on 05.01.2016.
+ */
 object FileViewApp {
   def main(args: Array[String]) {
     Application.launch(classOf[FileViewApp], args: _*)
@@ -60,6 +61,28 @@ class FileViewController extends Initializable {
   @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
   @FXML var textfield: TextArea = _
+
+  import TvUtils._
+
+  type FileAttributeTC[T] = TableColumn[MutableFileAttributes, T]
+
+  @FXML var tableView: TableView[MutableFileAttributes] = _
+
+  @FXML var columnName: FileAttributeTC[String] = _
+  @FXML var columnModified: FileAttributeTC[String] = _
+  @FXML var columnSize: FileAttributeTC[Int] = _
+
+  var mutableFileAttributes: ObservableList[MutableFileAttributes] = _
+
+  /**
+   * provide a table column and a generator function for the value to put into
+   * the column.
+   *
+   * @tparam T the type which is contained in the property
+   * @return
+   */
+  def initTableViewColumn[T]: (FileAttributeTC[T], (MutableFileAttributes) => Any) => Unit =
+    initTableViewColumnCellValueFactory[MutableFileAttributes, T]
 
 
   val rootItem = createNode(new File("c:/"))
@@ -111,7 +134,11 @@ class FileViewController extends Initializable {
 
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
-    import TvUtils._
+
+
+    initTableViewColumn[String](columnName, _.nameProperty)
+    initTableViewColumn[String](columnModified, _.modifiedProperty)
+    initTableViewColumn[Int](columnSize, _.sizeProperty)
 
     tree.setId("TreeView")
     tree.setEditable(true)
@@ -121,47 +148,52 @@ class FileViewController extends Initializable {
   }
 
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
-    var cm:ContextMenu = new ContextMenu()
 
+    var cm:ContextMenu = new ContextMenu()
     var menuRename = new MenuItem("Umbenennen")
     var menuCopy = new MenuItem("Kopieren")
     var menuPaste = new MenuItem("Einfügen")
     var menuCut = new MenuItem("Ausschneiden")
-
     cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut)
 
     def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
+
       event.getButton match{
         case MouseButton.PRIMARY =>
-          if (fileDirectory != null && fileDirectory.isLeaf){
-            val fullPath:File = fileDirectory.getValue
-            val fileCategory  = FileCategory(fullPath)
-            fileCategory match {
-              case "image" =>
-                image.setImage(new Image(fullPath.toURI.toString))
-                image.setVisible(true)
-                textfield.setVisible(false)
-               // tableView.setVisible(false)
-              case "text" =>
-                var text = ""
-                val bufferedSource = Source.fromFile(fullPath)
-                for (line <- bufferedSource.getLines()){
-                  text = text + "\n" + line.toString
-                }
-                bufferedSource.close
-                textfield.setText(text)
-                image.setVisible(false)
-               //tableView.setVisible(false)
-                textfield.setVisible(true)
-              case _ =>
-                println("Tableview anzeigen")
-                image.setVisible(false)
-                textfield.setVisible(false)
+          if(fileDirectory != null) {
+            if (fileDirectory.isLeaf) {
+              val fullPath: File = fileDirectory.getValue
+              val fileCategory = FileCategory(fullPath)
+              fileCategory match {
+                case "image" =>
+                  image.setImage(new Image(fullPath.toURI.toString))
+                  image.setVisible(true)
+                  textfield.setVisible(false)
+                  tableView.setVisible(false)
+                case "text" =>
+                  var text = ""
+                  val bufferedSource = Source.fromFile(fullPath)
+                  for (line <- bufferedSource.getLines()) {
+                    text = text + "\n" + line.toString
+                  }
+                  bufferedSource.close
+                  textfield.setText(text)
+                  image.setVisible(false)
+                  tableView.setVisible(false)
+                  textfield.setVisible(true)
+                case _ =>
+                  println("Tableview anzeigen")
+                  image.setVisible(false)
+                  textfield.setVisible(false)
+              }
+            } else {
+              println("Tableview anzeigen")
+              tableView.setVisible(true)
+              val direcory: File = fileDirectory.getValue
+              mutableFileAttributes = mkObservableList(DataSource.addFiles(direcory.listFiles()).map(MutableFileAttributes(_)))
+              tableView.setItems(mutableFileAttributes)
             }
-          }else {
-            println("Tableview anzeigen")
-           // tableView.setVisible(true)
           }
         case MouseButton.SECONDARY => printf("rechts-klick")
           cm.show(tree, event.getX, event.getY)
@@ -169,6 +201,7 @@ class FileViewController extends Initializable {
 
     }
   }
+
 
 
   def FileCategory(file: File):String = {
@@ -187,3 +220,5 @@ class FileViewController extends Initializable {
   lazy val imageTypes: List[String] = List (".jpg", ".png", ".ico", ".svg", ".bmp", ".gif", ".JPG")
 
 }
+
+
