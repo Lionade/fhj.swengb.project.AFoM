@@ -20,9 +20,9 @@ object TvUtils {
   }
 
 
-  def mkNewCell[T](typeToString: T => String)(lv: TreeView[T]): TextFieldTreeCellImpl[T] = {
+  def mkNewCell[T](typeToString: T => String)(lv: TreeView[T]): TreeCellImpl[T] = {
 
-    class newCell extends TextFieldTreeCellImpl[T] {
+    class newCell extends TreeCellImpl[T] {
       override def updateItem(t: T, empty: Boolean): Unit = {
         super.updateItem(t, empty)
         if (t != null) {
