@@ -160,6 +160,7 @@ class FileViewController extends Initializable {
             image.setImage(new Image(fullPath.toURI.toString))
             image.setVisible(true)
             textfield.setVisible(false)
+            tableView.setVisible(false)
           case "text" =>
             var text = ""
             for (line <- Source.fromFile(fullPath).getLines) {
@@ -167,12 +168,16 @@ class FileViewController extends Initializable {
             }
             textfield.setText(text)
             image.setVisible(false)
+            tableView.setVisible(false)
             textfield.setVisible(true)
           case _ =>
             println("Tableview anzeigen")
+            image.setVisible(false)
+            textfield.setVisible(false)
         }
       }else {
         println("Tableview anzeigen")
+        tableView.setVisible(true)
       }
     }
   }
