@@ -117,26 +117,31 @@ class FileViewController extends Initializable {
   }
 
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
-    def handle(event: MouseEvent): Unit ={
+    def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
-      val fullPath: File = fileDirectory.getValue
-      if (fileDirectory.isLeaf){
-        val fileCategory  = FileCategory(fullPath)
-        fileCategory match {
-          case "image" =>
-            image.setImage(new Image(fullPath.toURI.toString))
-          case "text" =>
-            var text = ""
-            for (line <- Source.fromFile(fullPath).getLines) {
-              text = text + "\n" + line.toString
+      event.getButton match{
+        case MouseButton.PRIMARY =>
+          if (fileDirectory != null && fileDirectory.isLeaf){
+            val fullPath:File = fileDirectory.getValue
+            val fileCategory  = FileCategory(fullPath)
+            fileCategory match {
+              case "image" =>
+                image.setImage(new Image(fullPath.toURI.toString))
+              case "text" =>
+                var text = ""
+                for (line <- Source.fromFile(fullPath).getLines) {
+                  text = text + "\n" + line.toString
+                }
+                textfield.setText(text)
+              case _ =>
+                println("Tableview anzeigen")
             }
-            textfield.setText(text)
-          case _ =>
+          }else {
             println("Tableview anzeigen")
-        }
-      }else {
-        println("Tableview anzeigen")
+          }
+        case MouseButton.SECONDARY => printf("rechts-klick")
       }
+
     }
   }
 
