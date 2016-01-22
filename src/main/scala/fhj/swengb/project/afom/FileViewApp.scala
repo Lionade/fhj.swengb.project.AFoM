@@ -204,7 +204,7 @@ class TextFieldTreeCellImpl[File] extends TreeCell[File]{
     txtField.setOnKeyReleased(new EventHandler[input.KeyEvent] {
 
       override def handle(event: input.KeyEvent): Unit = {
-        if(event.getCode == KeyCode.ENTER) commitEdit(new java.io.File(txtField.getText()).asInstanceOf[File]) // TODO: übergabes des neuen Filename
+        if(event.getCode == KeyCode.ENTER) commitEdit(new java.io.File(txtField.getText()).asInstanceOf[File])
         else if(event.getCode == KeyCode.ESCAPE) cancelEdit()
       }
     })
