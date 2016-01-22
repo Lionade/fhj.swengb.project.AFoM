@@ -56,34 +56,10 @@ class FileViewApp extends javafx.application.Application {
     }
 }
 
-
 class FileViewController extends Initializable {
   @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
   @FXML var textfield: TextArea = _
-
-  import JfxUtils._
-
-  type ArticleTC[T] = TableColumn[MutableArticle, T]
-
-  @FXML var tableView: TableView[MutableArticle] = _
-
-  @FXML var columnName: ArticleTC[String] = _
-  @FXML var columnModified: ArticleTC[String] = _
-  @FXML var columnSize: ArticleTC[Int] = _
-
-  val mutableArticles = mkObservableList(DataSource.data.map(MutableArticle(_)))
-
-
-  /**
-    * provide a table column and a generator function for the value to put into
-    * the column.
-    *
-    * @tparam T the type which is contained in the property
-    * @return
-    */
-  def initTableViewColumn[T]: (ArticleTC[T], (MutableArticle) => Any) => Unit =
-    initTableViewColumnCellValueFactory[MutableArticle, T]
 
 
   val rootItem = createNode(new File("c:/"))
@@ -137,23 +113,14 @@ class FileViewController extends Initializable {
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
     import TvUtils._
 
-    tableView.setItems(mutableArticles)
-
-    initTableViewColumn[String](columnName, _.nameProperty)
-    initTableViewColumn[String](columnModified, _.modifiedProperty)
-    initTableViewColumn[Int](columnSize, _.sizeProperty)
-
     tree.setId("TreeView")
     tree.setEditable(true)
     tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](fileToString(_))))
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
     scrollpane.setContent(tree)
-
-
   }
 
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
-
     var cm:ContextMenu = new ContextMenu()
 
     var menuRename = new MenuItem("Umbenennen")
@@ -163,13 +130,10 @@ class FileViewController extends Initializable {
 
     cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut)
 
-
     def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
       event.getButton match{
         case MouseButton.PRIMARY =>
-          cm.hide()
-
           if (fileDirectory != null && fileDirectory.isLeaf){
             val fullPath:File = fileDirectory.getValue
             val fileCategory  = FileCategory(fullPath)
@@ -178,7 +142,7 @@ class FileViewController extends Initializable {
                 image.setImage(new Image(fullPath.toURI.toString))
                 image.setVisible(true)
                 textfield.setVisible(false)
-                tableView.setVisible(false)
+               // tableView.setVisible(false)
               case "text" =>
                 var text = ""
                 val bufferedSource = Source.fromFile(fullPath)
@@ -188,7 +152,7 @@ class FileViewController extends Initializable {
                 bufferedSource.close
                 textfield.setText(text)
                 image.setVisible(false)
-                tableView.setVisible(false)
+               //tableView.setVisible(false)
                 textfield.setVisible(true)
               case _ =>
                 println("Tableview anzeigen")
@@ -197,19 +161,14 @@ class FileViewController extends Initializable {
             }
           }else {
             println("Tableview anzeigen")
-            tableView.setVisible(true)
+           // tableView.setVisible(true)
           }
-        case MouseButton.SECONDARY =>
-          printf("rechts-klick")
-          cm.show(tree, event.getX,event.getY)
-
-
+        case MouseButton.SECONDARY => printf("rechts-klick")
+          cm.show(tree, event.getX, event.getY)
       }
 
     }
   }
-
-
 
 
   def FileCategory(file: File):String = {
@@ -228,78 +187,3 @@ class FileViewController extends Initializable {
   lazy val imageTypes: List[String] = List (".jpg", ".png", ".ico", ".svg", ".bmp", ".gif", ".JPG")
 
 }
-
-/**
-  * domain object
-  */
-case class Article(name: String, modified: String, size: Int)
-
-/**
-  * domain object, but usable with javafx
-  */
-class MutableArticle {
-
-  val nameProperty: SimpleStringProperty = new SimpleStringProperty()
-  val modifiedProperty: SimpleStringProperty = new SimpleStringProperty()
-  val sizeProperty: SimpleIntegerProperty = new SimpleIntegerProperty()
-
-  def setName(name: String) = nameProperty.set(name)
-
-  def setModified(modified: String) = modifiedProperty.set(modified)
-
-  def setSize(size: Int) = sizeProperty.set(size)
-}
-
-
-/**
-  * companion object to get a better initialisation story
-  */
-object MutableArticle {
-
-  def apply(a: Article): MutableArticle = {
-    val ma = new MutableArticle
-    ma.setName(a.name)
-    ma.setModified(a.modified)
-    ma.setSize(a.size)
-    ma
-  }
-}
-
-
-/**
-  * util functions to bridge the javafx / scala gap
-  */
-object JfxUtils {
-
-  type TCDF[S, T] = TableColumn.CellDataFeatures[S, T]
-
-  import JavaConversions._
-
-  def mkObservableList[T](collection: Iterable[T]): ObservableList[T] = {
-    FXCollections.observableList(new java.util.ArrayList[T](collection))
-  }
-
-  private def mkCellValueFactory[S, T](fn: TCDF[S, T] => ObservableValue[T]): Callback[TCDF[S, T], ObservableValue[T]] = {
-    new Callback[TCDF[S, T], ObservableValue[T]] {
-      def call(cdf: TCDF[S, T]): ObservableValue[T] = fn(cdf)
-    }
-  }
-
-  def initTableViewColumnCellValueFactory[S, T](tc: TableColumn[S, T], f: S => Any): Unit = {
-    tc.setCellValueFactory(mkCellValueFactory(cdf => f(cdf.getValue).asInstanceOf[ObservableValue[T]]))
-  }
-
-}
-
-/**
-  * simulates a database for example
-  */
-object DataSource {
-
-  val data =
-    (1 to 10) map {
-      case i => Article("name $i", "halo $i", i)
-    }
-
-}
-
