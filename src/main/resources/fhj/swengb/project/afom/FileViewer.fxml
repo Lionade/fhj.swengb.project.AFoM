@@ -5,20 +5,20 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/null" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fhj.swengb.project.afom.FileViewController">
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fhj.swengb.project.afom.FileViewController">
    <columnConstraints>
-      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="50"/>
-      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" fillWidth="true"/>
+      <ColumnConstraints hgrow="SOMETIMES" maxWidth="394.0" minWidth="10.0" prefWidth="254.0" />
+      <ColumnConstraints hgrow="SOMETIMES" maxWidth="1003.0" minWidth="10.0" prefWidth="946.0" />
    </columnConstraints>
    <rowConstraints>
-      <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
+      <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
    </rowConstraints>
    <children>
-      <ScrollPane fx:id="scrollpane" fitToHeight="true" maxWidth="200"/>
+      <ScrollPane fx:id="scrollpane" fitToHeight="true" maxWidth="727.0" prefHeight="640.0" prefWidth="259.0" />
 
-      <ImageView fx:id="image" fitHeight="500" fitWidth="500" pickOnBounds="true" preserveRatio="true" visible="false" GridPane.valignment="CENTER" GridPane.halignment="CENTER" GridPane.columnIndex="1" GridPane.fillWidth="true" GridPane.fillHeight="true" />
-      <TextArea fx:id="textfield" prefHeight="200.0" prefWidth="200.0" visible="false" GridPane.columnIndex="1" GridPane.fillWidth="true" GridPane.fillHeight="true"  />
-      <TableView fx:id="tableView" prefHeight="200.0" prefWidth="200.0" visible="false" GridPane.columnIndex="1"  GridPane.fillWidth="true" GridPane.fillHeight="true">
+      <ImageView fx:id="image" fitHeight="500" fitWidth="500" pickOnBounds="true" preserveRatio="true" visible="false" GridPane.columnIndex="1" GridPane.fillHeight="true" GridPane.fillWidth="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+      <TextArea fx:id="textfield" prefHeight="200.0" prefWidth="200.0" visible="false" GridPane.columnIndex="1" GridPane.fillHeight="true" GridPane.fillWidth="true" />
+      <TableView fx:id="tableView" prefHeight="200.0" prefWidth="200.0" visible="false" GridPane.columnIndex="1" GridPane.fillHeight="true" GridPane.fillWidth="true">
          <columns>
             <TableColumn fx:id="columnName" prefWidth="300.0" text="Filename" />
             <TableColumn fx:id="columnModified" minWidth="0.0" prefWidth="300.0" text="Modified" />
