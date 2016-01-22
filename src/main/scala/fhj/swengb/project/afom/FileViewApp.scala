@@ -129,9 +129,11 @@ class FileViewController extends Initializable {
                 image.setImage(new Image(fullPath.toURI.toString))
               case "text" =>
                 var text = ""
-                for (line <- Source.fromFile(fullPath).getLines) {
+                val bufferedSource = Source.fromFile(fullPath)
+                for (line <- bufferedSource.getLines()){
                   text = text + "\n" + line.toString
                 }
+                bufferedSource.close
                 textfield.setText(text)
               case _ =>
                 println("Tableview anzeigen")
