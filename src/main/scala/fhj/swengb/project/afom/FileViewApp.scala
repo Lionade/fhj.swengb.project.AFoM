@@ -54,8 +54,6 @@ class FileViewApp extends javafx.application.Application {
 }
 
 class FileViewController extends Initializable {
-  import JfxUtils._
-
   @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
   @FXML var textfield: TextArea = _
@@ -109,11 +107,11 @@ class FileViewController extends Initializable {
 
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
-    import JfxUtils._
+    import TvUtils._
 
     tree.setId("TreeView")
     tree.setEditable(true)
-    tree.setCellFactory(mkTreeCellFactory(show[File](fileToString(_))))
+    tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](fileToString(_))))
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
     scrollpane.setContent(tree)
   }
@@ -162,7 +160,6 @@ class FileViewController extends Initializable {
 }
 
 class TextFieldTreeCellImpl[File] extends TreeCell[File]{
-
   var txtField: TextField = _
 
   override def startEdit: Unit ={
@@ -205,9 +202,9 @@ class TextFieldTreeCellImpl[File] extends TreeCell[File]{
   def createTextField() = {
     txtField = new TextField(getString)
     txtField.setOnKeyReleased(new EventHandler[input.KeyEvent] {
-      val t = new File() // geht noch nicht
+
       override def handle(event: input.KeyEvent): Unit = {
-        if(event.getCode == KeyCode.ENTER) commitEdit(t) // TODO: übergabes des neuen Filename
+        if(event.getCode == KeyCode.ENTER) commitEdit(new java.io.File(txtField.getText()).asInstanceOf[File]) // TODO: übergabes des neuen Filename
         else if(event.getCode == KeyCode.ESCAPE) cancelEdit()
       }
     })
@@ -216,36 +213,6 @@ class TextFieldTreeCellImpl[File] extends TreeCell[File]{
 
   def getString: String = {
     return if(getItem == null) "" else getItem.toString
-  }
-
-
-}
-
-object JfxUtils{
-
-  def mkTreeCellFactory[T](f: TreeView[T] => TreeCell[T]): Callback[TreeView[T], TreeCell[T]] = {
-    new Callback[TreeView[T], TreeCell[T]] {
-      override def call(param: TreeView[T]): TreeCell[T] = f(param)
-    }
-  }
-
-  def fileToString(f: File): String ={
-    f.getName
-  }
-
-
-  def show[T](typeToString: T => String)(lv: TreeView[T]): TextFieldTreeCellImpl[T] = {
-
-    class newCell extends TextFieldTreeCellImpl[T] {
-      override def updateItem(t: T, empty: Boolean): Unit = {
-        super.updateItem(t, empty)
-        if (t != null) {
-          setText(typeToString(t))
-        }
-        else setText(null)
-      }
-    }
-    new newCell()
   }
 
 
