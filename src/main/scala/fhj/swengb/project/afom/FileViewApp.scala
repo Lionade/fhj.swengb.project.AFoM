@@ -12,7 +12,7 @@ import java.util.ResourceBundle
 import javafx.application.Application
 import javafx.beans.value.ObservableValue
 import javafx.collections.{ObservableList, FXCollections}
-import javafx.event.EventHandler
+import javafx.event.{ActionEvent, EventHandler}
 import javafx.fxml.{FXML, Initializable, FXMLLoader}
 import javafx.scene.control._
 import javafx.scene.image.{ImageView, Image}
@@ -144,23 +144,44 @@ class FileViewController extends Initializable {
     tree.setEditable(true)
     tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](fileToString(_))))
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
+
     scrollpane.setContent(tree)
   }
 
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
 
     var cm:ContextMenu = new ContextMenu()
+
+    //Context Einträge
     var menuRename = new MenuItem("Umbenennen")
+    menuRename.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit = {
+        tree.edit(tree.getSelectionModel.getSelectedItem) //Finds current TreeItem and edits it
+      }
+    })
+
     var menuCopy = new MenuItem("Kopieren")
+    menuCopy.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit = println("Copy")
+    })
+
     var menuPaste = new MenuItem("Einfügen")
+    menuPaste.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit = println("Paste")
+    })
+
     var menuCut = new MenuItem("Ausschneiden")
+    menuCut.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit = println("Cut")
+    })
+
     cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut)
 
     def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
-
       event.getButton match{
         case MouseButton.PRIMARY =>
+          cm.hide() //Versteckt Context Menü bei links-klick wieder
           if(fileDirectory != null) {
             if (fileDirectory.isLeaf) {
               val fullPath: File = fileDirectory.getValue
@@ -196,7 +217,7 @@ class FileViewController extends Initializable {
             }
           }
         case MouseButton.SECONDARY => printf("rechts-klick")
-          cm.show(tree, event.getX, event.getY)
+          cm.show(tree, event.getScreenX, event.getScreenY)
       }
 
     }
