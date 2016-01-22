@@ -2,6 +2,7 @@ package fhj.swengb.project.afom
 
 import java.awt.event.KeyEvent
 import javafx.beans.property.{SimpleDoubleProperty, SimpleStringProperty, SimpleIntegerProperty}
+import scala.collection.immutable.IndexedSeq
 import scala.reflect._
 import java.io.{IOException, File}
 import java.net.URL
@@ -32,8 +33,8 @@ import scala.util.control.NonFatal
 
 
 /**
-  * Created by Steve on 05.01.2016.
-  */
+ * Created by Steve on 05.01.2016.
+ */
 object FileViewApp {
   def main(args: Array[String]) {
     Application.launch(classOf[FileViewApp], args: _*)
@@ -71,15 +72,15 @@ class FileViewController extends Initializable {
   @FXML var columnModified: ArticleTC[String] = _
   @FXML var columnSize: ArticleTC[Int] = _
 
-  val mutableArticles = mkObservableList(DataSource.data.map(MutableArticle(_)))
-
+  var mutableArticles: ObservableList[MutableArticle] = _
+  //val mutableArticles: ObservableList[MutableArticle] = mkObservableList(DataSource.data.map(MutableArticle(_)))
   /**
-    * provide a table column and a generator function for the value to put into
-    * the column.
-    *
-    * @tparam T the type which is contained in the property
-    * @return
-    */
+   * provide a table column and a generator function for the value to put into
+   * the column.
+   *
+   * @tparam T the type which is contained in the property
+   * @return
+   */
   def initTableViewColumn[T]: (ArticleTC[T], (MutableArticle) => Any) => Unit =
     initTableViewColumnCellValueFactory[MutableArticle, T]
 
@@ -135,8 +136,6 @@ class FileViewController extends Initializable {
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
     import TvUtils._
 
-    tableView.setItems(mutableArticles)
-
     initTableViewColumn[String](columnName, _.nameProperty)
     initTableViewColumn[String](columnModified, _.modifiedProperty)
     initTableViewColumn[Int](columnSize, _.sizeProperty)
@@ -181,6 +180,9 @@ class FileViewController extends Initializable {
           }else {
             println("Tableview anzeigen")
             tableView.setVisible(true)
+            val test:File = fileDirectory.getValue
+            mutableArticles = mkObservableList(DataSource.addFiles(test.listFiles()).map(MutableArticle(_)))
+            tableView.setItems(mutableArticles)
           }
         case MouseButton.SECONDARY => printf("rechts-klick")
       }
@@ -208,13 +210,13 @@ class FileViewController extends Initializable {
 }
 
 /**
-  * domain object
-  */
+ * domain object
+ */
 case class Article(name: String, modified: String, size: Int)
 
 /**
-  * domain object, but usable with javafx
-  */
+ * domain object, but usable with javafx
+ */
 class MutableArticle {
 
   val nameProperty: SimpleStringProperty = new SimpleStringProperty()
@@ -230,8 +232,8 @@ class MutableArticle {
 
 
 /**
-  * companion object to get a better initialisation story
-  */
+ * companion object to get a better initialisation story
+ */
 object MutableArticle {
 
   def apply(a: Article): MutableArticle = {
@@ -245,8 +247,8 @@ object MutableArticle {
 
 
 /**
-  * util functions to bridge the javafx / scala gap
-  */
+ * util functions to bridge the javafx / scala gap
+ */
 object JfxUtils {
 
   type TCDF[S, T] = TableColumn.CellDataFeatures[S, T]
@@ -270,13 +272,18 @@ object JfxUtils {
 }
 
 /**
-  * simulates a database for example
-  */
+ * simulates a database for example
+ */
 object DataSource {
 
-  val data =
-    (1 to 10) map {
-      case i => Article("name $i", "halo $i", i)
-    }
+  /* val data: IndexedSeq[Article] =
+      1 to 10 map {
+       case i => Article("name $i", "halo $i", i)
+     } */
+  def addFiles(files: Array[File]): Array[Article] = {
+    files.map(f => Article(f.getName(),f.lastModified().toString, (f.length()/1024).toInt))
+  }
+
+  //data = files.map(i => Article(i.getName(),i.lastModified().toString, (i.length()/1024).toInt))
 
 }
