@@ -56,6 +56,7 @@ class FileViewApp extends javafx.application.Application {
     }
 }
 
+
 class FileViewController extends Initializable {
   @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
@@ -72,6 +73,7 @@ class FileViewController extends Initializable {
   @FXML var columnSize: ArticleTC[Int] = _
 
   val mutableArticles = mkObservableList(DataSource.data.map(MutableArticle(_)))
+
 
   /**
     * provide a table column and a generator function for the value to put into
@@ -146,41 +148,69 @@ class FileViewController extends Initializable {
     tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](fileToString(_))))
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
     scrollpane.setContent(tree)
+
+
   }
 
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
-    def handle(event: MouseEvent): Unit ={
+
+    var cm:ContextMenu = new ContextMenu()
+
+    var menuRename = new MenuItem("Umbenennen")
+    var menuCopy = new MenuItem("Kopieren")
+    var menuPaste = new MenuItem("Einfügen")
+    var menuCut = new MenuItem("Ausschneiden")
+
+    cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut)
+
+
+    def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
-      println(fileDirectory)
-      val fullPath: File = fileDirectory.getValue
-      if (fileDirectory.isLeaf){
-        val fileCategory  = FileCategory(fullPath)
-        fileCategory match {
-          case "image" =>
-            image.setImage(new Image(fullPath.toURI.toString))
-            image.setVisible(true)
-            textfield.setVisible(false)
-            tableView.setVisible(false)
-          case "text" =>
-            var text = ""
-            for (line <- Source.fromFile(fullPath).getLines) {
-              text = text + "\n" + line.toString
+      event.getButton match{
+        case MouseButton.PRIMARY =>
+          cm.hide()
+
+          if (fileDirectory != null && fileDirectory.isLeaf){
+            val fullPath:File = fileDirectory.getValue
+            val fileCategory  = FileCategory(fullPath)
+            fileCategory match {
+              case "image" =>
+                image.setImage(new Image(fullPath.toURI.toString))
+                image.setVisible(true)
+                textfield.setVisible(false)
+                tableView.setVisible(false)
+              case "text" =>
+                var text = ""
+                val bufferedSource = Source.fromFile(fullPath)
+                for (line <- bufferedSource.getLines()){
+                  text = text + "\n" + line.toString
+                }
+                bufferedSource.close
+                textfield.setText(text)
+                image.setVisible(false)
+                tableView.setVisible(false)
+                textfield.setVisible(true)
+              case _ =>
+                println("Tableview anzeigen")
+                image.setVisible(false)
+                textfield.setVisible(false)
             }
-            textfield.setText(text)
-            image.setVisible(false)
-            tableView.setVisible(false)
-            textfield.setVisible(true)
-          case _ =>
+          }else {
             println("Tableview anzeigen")
-            image.setVisible(false)
-            textfield.setVisible(false)
-        }
-      }else {
-        println("Tableview anzeigen")
-        tableView.setVisible(true)
+            tableView.setVisible(true)
+          }
+        case MouseButton.SECONDARY =>
+          printf("rechts-klick")
+          cm.show(tree, event.getX,event.getY)
+
+
       }
+
     }
   }
+
+
+
 
   def FileCategory(file: File):String = {
     if(textTypes.exists(file.getName.contains(_))) {
@@ -272,3 +302,4 @@ object DataSource {
     }
 
 }
+
