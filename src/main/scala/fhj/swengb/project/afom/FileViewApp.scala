@@ -56,7 +56,7 @@ class FileViewApp extends javafx.application.Application {
       case NonFatal(e) => e.printStackTrace()
     }
 }
-
+//test
 class FileViewController extends Initializable {
   @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
