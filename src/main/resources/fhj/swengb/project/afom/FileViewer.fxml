@@ -5,7 +5,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/null" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fhj.swengb.project.afom.FileViewController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="640.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fhj.swengb.project.afom.FileViewController">
    <right>
       <GridPane BorderPane.alignment="CENTER">
          <columnConstraints>
@@ -15,8 +15,15 @@
             <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
          </rowConstraints>
          <children>
-            <ImageView fx:id="image" fitHeight="348.0" fitWidth="334.0" pickOnBounds="true" preserveRatio="true" />
-            <TextArea fx:id="textfield" prefHeight="200.0" prefWidth="200.0" />
+            <ImageView fx:id="image" fitHeight="348.0" fitWidth="334.0" pickOnBounds="true" preserveRatio="true" visible="false" />
+            <TextArea fx:id="textfield" prefHeight="200.0" prefWidth="200.0" visible="false" />
+            <TableView fx:id="tableView" prefHeight="200.0" prefWidth="200.0" visible="false">
+               <columns>
+                  <TableColumn fx:id="columnName" prefWidth="300.0" text="Filename" />
+                  <TableColumn fx:id="columnModified" minWidth="0.0" prefWidth="300.0" text="Modified" />
+                  <TableColumn fx:id="columnSize" prefWidth="300.0" text="Size(KB)" />
+               </columns>
+            </TableView>
          </children>
       </GridPane>
    </right>
@@ -31,13 +38,4 @@
          </items>
       </SplitPane>
    </center>
-   <bottom>
-      <TableView fx:id="tableView" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-         <columns>
-            <TableColumn fx:id="columnName" prefWidth="300.0" text="Filename" />
-            <TableColumn fx:id="columnModified" minWidth="0.0" prefWidth="300.0" text="Modified" />
-            <TableColumn fx:id="columnSize" prefWidth="300.0" text="Size(KB)" />
-         </columns>
-      </TableView>
-   </bottom>
 </BorderPane>
