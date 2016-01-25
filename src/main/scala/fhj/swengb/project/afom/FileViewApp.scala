@@ -1,5 +1,6 @@
 package fhj.swengb.project.afom
 
+import java.awt.Desktop
 import java.awt.event.KeyEvent
 import javafx.beans.property.{SimpleDoubleProperty, SimpleStringProperty, SimpleIntegerProperty}
 import scala.collection.immutable.IndexedSeq
@@ -143,14 +144,42 @@ class FileViewController extends Initializable {
     tree.setId("TreeView")
     tree.setEditable(true)
     tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](fileToString(_))))
+
+    tableView.addEventHandler(MouseEvent.MOUSE_PRESSED, mouseClickedEventTableView)
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
 
     scrollpane.setContent(tree)
   }
 
+
+  def mouseClickedEventTableView = new EventHandler[MouseEvent] {
+    def handle(event: MouseEvent): Unit = {
+      if (event.getClickCount() == 2) {
+        //gets fileDirectory from tree
+        val fileDirectory: File = tree.getSelectionModel.getSelectedItem.getValue
+        //gets selected tableposition
+        val pos = tableView.getSelectionModel().getSelectedCells().get(0)
+
+        //gets value from tablecell
+        val tableFile = pos.getTableColumn().getCellObservableValue(pos.getRow()).getValue
+
+        // adds file directory and table file to a full path
+        val fullPath = new File(fileDirectory + "\\" + tableFile)
+        try{
+          Desktop.getDesktop.open(fullPath)
+        }
+        catch{
+          case e: IOException => e.printStackTrace()
+
+        }
+      }
+    }
+  }
+
+
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
 
-    var cm:ContextMenu = new ContextMenu()
+    var cm: ContextMenu = new ContextMenu()
 
     //Context Einträge
     var menuRename = new MenuItem("Umbenennen")
