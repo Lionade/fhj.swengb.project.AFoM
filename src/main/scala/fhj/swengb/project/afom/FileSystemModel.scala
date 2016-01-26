@@ -19,6 +19,7 @@ object FileSystemModel {
         StandardCopyOption.REPLACE_EXISTING)
     } catch{
       case e: IOException => println("something went wrong")
+
     }
   }
 
@@ -51,27 +52,26 @@ object FileSystemModel {
     }
   }
 
-  def showRecursive(path: Path): Unit = {
+  def removeRecursive(path: Path): Unit = {
     Files.walkFileTree(path, new SimpleFileVisitor[Path]() {
       override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-        println(path)
+        Files.delete(path)
         FileVisitResult.CONTINUE
       }
 
-      /* override def visitFileFailed(path: Path, exc: IOException): FileVisitResult = {
-        // Files.delete(path)
-         println("Hallo")
-         FileVisitResult.CONTINUE;
-       }
+      override def visitFileFailed(path: Path, exc: IOException): FileVisitResult = {
+        Files.delete(path)
+        FileVisitResult.CONTINUE;
+      }
 
-       override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
-         if (exc == null) {
-           Files.delete(dir)
-           FileVisitResult.CONTINUE
-         } else {
-           throw exc
-         }
-       }*/
+      override def postVisitDirectory(dir: Path, exc: IOException): FileVisitResult = {
+        if (exc == null) {
+          Files.delete(dir)
+          FileVisitResult.CONTINUE
+        } else {
+          throw exc
+        }
+      }
     }
     )
   }

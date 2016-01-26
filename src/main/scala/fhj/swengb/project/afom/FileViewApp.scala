@@ -181,6 +181,7 @@ class FileViewController extends Initializable {
 
     var cm: ContextMenu = new ContextMenu()
     var source: Path = null
+    var cutFlag: Boolean = false
 
     //Context Einträge
     var menuRename = new MenuItem("Umbenennen")
@@ -204,6 +205,10 @@ class FileViewController extends Initializable {
         if (source != null){
           val destination = Paths.get(tree.getSelectionModel.getSelectedItem.getValue.toString)
           FileSystemModel.copy(source, destination)
+          if (cutFlag){
+            FileSystemModel.removeRecursive(source)
+            cutFlag = false
+          }
         }
 
       }
@@ -212,11 +217,20 @@ class FileViewController extends Initializable {
     var menuCut = new MenuItem("Ausschneiden")
     menuCut.setOnAction(new EventHandler[ActionEvent] {
       override def handle(event: ActionEvent): Unit = {
+         cutFlag = true
+         source = Paths.get(tree.getSelectionModel.getSelectedItem.getValue.toString)
 
       }
     })
 
-    cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut)
+    var menuRemove = new MenuItem("Löschen")
+    menuRemove.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit = {
+        FileSystemModel.removeRecursive(Paths.get(tree.getSelectionModel.getSelectedItem.getValue.toString))
+      }
+    })
+
+    cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut, menuRemove)
 
     def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
