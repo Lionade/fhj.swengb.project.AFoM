@@ -1,5 +1,6 @@
 package fhj.swengb.project.afom
 
+import java.awt.Desktop
 import java.awt.event.KeyEvent
 import javafx.beans.property.{SimpleDoubleProperty, SimpleStringProperty, SimpleIntegerProperty}
 import scala.collection.immutable.IndexedSeq
@@ -12,7 +13,7 @@ import java.util.ResourceBundle
 import javafx.application.Application
 import javafx.beans.value.ObservableValue
 import javafx.collections.{ObservableList, FXCollections}
-import javafx.event.EventHandler
+import javafx.event.{ActionEvent, EventHandler}
 import javafx.fxml.{FXML, Initializable, FXMLLoader}
 import javafx.scene.control._
 import javafx.scene.image.{ImageView, Image}
@@ -56,7 +57,7 @@ class FileViewApp extends javafx.application.Application {
       case NonFatal(e) => e.printStackTrace()
     }
 }
-//test
+
 class FileViewController extends Initializable {
   @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
@@ -143,24 +144,85 @@ class FileViewController extends Initializable {
     tree.setId("TreeView")
     tree.setEditable(true)
     tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](fileToString(_))))
+
+    tableView.addEventHandler(MouseEvent.MOUSE_PRESSED, mouseClickedEventTableView)
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
+
     scrollpane.setContent(tree)
   }
 
+
+  def mouseClickedEventTableView = new EventHandler[MouseEvent] {
+    def handle(event: MouseEvent): Unit = {
+      if (event.getClickCount() == 2) {
+        //gets fileDirectory from tree
+        val fileDirectory: File = tree.getSelectionModel.getSelectedItem.getValue
+        //gets selected tableposition
+        val pos = tableView.getSelectionModel().getSelectedCells().get(0)
+
+        //gets value from tablecell
+        val tableFile = pos.getTableColumn().getCellObservableValue(pos.getRow()).getValue
+
+        // adds file directory and table file to a full path
+        val fullPath = new File(fileDirectory + "\\" + tableFile)
+        try{
+          Desktop.getDesktop.open(fullPath)
+        }
+        catch{
+          case e: IOException => e.printStackTrace()
+
+        }
+      }
+    }
+  }
+
+
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
 
-    var cm:ContextMenu = new ContextMenu()
+    var cm: ContextMenu = new ContextMenu()
+    var source: Path = null
+
+    //Context Einträge
     var menuRename = new MenuItem("Umbenennen")
+    menuRename.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit = {
+        tree.edit(tree.getSelectionModel.getSelectedItem) //Finds current TreeItem and edits it
+      }
+    })
+
     var menuCopy = new MenuItem("Kopieren")
+    menuCopy.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit ={
+        source = Paths.get(tree.getSelectionModel.getSelectedItem.getValue.toString)
+      }
+
+    })
+
     var menuPaste = new MenuItem("Einfügen")
+    menuPaste.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit =  {
+        if (source != null){
+          val destination = Paths.get(tree.getSelectionModel.getSelectedItem.getValue.toString)
+          FileSystemModel.copy(source, destination)
+        }
+
+      }
+    })
+
     var menuCut = new MenuItem("Ausschneiden")
+    menuCut.setOnAction(new EventHandler[ActionEvent] {
+      override def handle(event: ActionEvent): Unit = {
+
+      }
+    })
+
     cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut)
 
     def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
-
       event.getButton match{
         case MouseButton.PRIMARY =>
+          cm.hide() //Versteckt Context Menü bei links-klick wieder
           if(fileDirectory != null) {
             if (fileDirectory.isLeaf) {
               val fullPath: File = fileDirectory.getValue
@@ -196,7 +258,7 @@ class FileViewController extends Initializable {
             }
           }
         case MouseButton.SECONDARY => printf("rechts-klick")
-          cm.show(tree, event.getX, event.getY)
+          cm.show(tree, event.getScreenX, event.getScreenY)
       }
 
     }
