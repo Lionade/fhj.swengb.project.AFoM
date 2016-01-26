@@ -14,6 +14,8 @@ import javafx.scene.input.KeyCode
 class TxtFieledCell[File] extends TreeCell[File]{
   var txtField: TextField = _
 
+  def test: Unit = {}
+
   // Cell wechselt auf änderbaren Zustand; start bei Doppel-klick
   override def startEdit: Unit ={
     super.startEdit()
