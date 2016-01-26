@@ -136,7 +136,6 @@ class FileViewController extends Initializable {
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
 
-
     initTableViewColumn[String](columnName, _.nameProperty)
     initTableViewColumn[String](columnModified, _.modifiedProperty)
     initTableViewColumn[Int](columnSize, _.sizeProperty)
@@ -179,7 +178,7 @@ class FileViewController extends Initializable {
 
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
 
-    var cm: ContextMenu = new ContextMenu()
+ /*   var cm: ContextMenu = new ContextMenu()
 
     //Context Einträge
     var menuRename = new MenuItem("Umbenennen")
@@ -204,13 +203,13 @@ class FileViewController extends Initializable {
       override def handle(event: ActionEvent): Unit = println("Cut")
     })
 
-    cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut)
+    cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut) */
 
     def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
       event.getButton match{
         case MouseButton.PRIMARY =>
-          cm.hide() //Versteckt Context Menü bei links-klick wieder
+          //cm.hide() //Versteckt Context Menü bei links-klick wieder
           if(fileDirectory != null) {
             if (fileDirectory.isLeaf) {
               val fullPath: File = fileDirectory.getValue
@@ -246,7 +245,7 @@ class FileViewController extends Initializable {
             }
           }
         case MouseButton.SECONDARY => printf("rechts-klick")
-          cm.show(tree, event.getScreenX, event.getScreenY)
+        //  cm.show(tree, event.getScreenX, event.getScreenY)
       }
 
     }
