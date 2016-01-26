@@ -24,13 +24,27 @@ object FileSystemModel {
 
   def copy (sourcePath: Path, destinationPath: Path): Unit={
     try {
-      Files.walkFileTree(sourcePath, new SimpleFileVisitor[Path]() {
-        override def visitFile(sourcePath: Path, attrs: BasicFileAttributes): FileVisitResult = {
-          val destinationFullPath: Path = Paths.get(destinationPath.toString + "\\" + sourcePath.getFileName.toString)
-          Files.copy(sourcePath, destinationFullPath)
-          FileVisitResult.CONTINUE
-        }
-      })
+      val sub = sourcePath.toString.length - sourcePath.getFileName.toString.length
+      val sourceFile = new File(sourcePath.toString)
+      if(sourceFile.isDirectory){
+        Files.walkFileTree(sourcePath, new SimpleFileVisitor[Path](){ //ertsellt Unterordner
+          override def preVisitDirectory(sourcePath: Path, attr: BasicFileAttributes): FileVisitResult = {
+            val newDestFullPath = Paths.get(destinationPath.toString + "\\" + sourcePath.toString.substring(sub - 1))
+            Files.copy(sourcePath, newDestFullPath)
+            FileVisitResult.CONTINUE
+          }
+        })
+        Files.walkFileTree(sourcePath, new SimpleFileVisitor[Path]() { //erstellt Files
+          override def visitFile(sourcePath: Path, attr: BasicFileAttributes): FileVisitResult = {
+            val newDestFullPath = Paths.get(destinationPath.toString + "\\" + sourcePath.toString.substring(sub - 1))
+            Files.copy(sourcePath, newDestFullPath)
+            FileVisitResult.CONTINUE
+          }
+        })
+      }else {
+        Files.copy(sourcePath, Paths.get(destinationPath.toString + "\\" + sourcePath.getFileName.toString))
+      }
+
     } catch{
       case e: FileAlreadyExistsException => println("FileAlreadyExists")
       case e: IOException => println ("something else went wrong")
