@@ -28,7 +28,7 @@ object FileSystemModel {
      } catch{
       case e: FileAlreadyExistsException => println("FileAlreadyExists")
       case e: IOException => println ("something else went wrong")
-}
+    }
   }
   /*def mkParent(file : File) : Unit = {
     if (!file.getParentFile.exists()) {
