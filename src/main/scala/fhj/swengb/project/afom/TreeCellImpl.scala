@@ -2,7 +2,7 @@ package fhj.swengb.project.afom
 
 import java.awt.event.MouseEvent
 import java.io
-import java.nio.file.{Paths, Files}
+import java.nio.file.{Path, Paths, Files}
 import javafx.event.EventHandler
 import javafx.event.{EventHandler, ActionEvent}
 import javafx.scene.control.{MenuItem, ContextMenu, TreeCell, TextField}
@@ -14,46 +14,67 @@ import javafx.scene.input.{KeyEvent, DragEvent, KeyCode}
   * Created by Steve on 22.01.2016.
   */
 object Global {
-  var zwAblage:String = "geht net"
+  var zwAblage: Path = null
+  var cutFlag: Boolean = false
 }
 
 
 // TODO: Namen nicht durch vollen Path ersetzen nach bearbeitung
 class TxtFieledCell[File] extends TreeCell[File]{
   var txtField: TextField = _
-  val cm: ContextMenu = new ContextMenu()
+  var cm: ContextMenu = new ContextMenu()
 
-
+  //Context Einträge
   var menuRename = new MenuItem("Umbenennen")
   menuRename.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
       startEdit
+      //tree.edit(tree.getSelectionModel.getSelectedItem) //Finds current TreeItem and edits it
     }
   })
 
   var menuCopy = new MenuItem("Kopieren")
   menuCopy.setOnAction(new EventHandler[ActionEvent] {
-    override def handle(event: ActionEvent): Unit = {
-      Global.zwAblage = "test"
+    override def handle(event: ActionEvent): Unit ={
+      Global.zwAblage = Paths.get(getItem.toString)
+      //Global.zwAblage = Paths.get(tree.getSelectionModel.getSelectedItem.getValue.toString)
     }
+
   })
 
   var menuPaste = new MenuItem("Einfügen")
   menuPaste.setOnAction(new EventHandler[ActionEvent] {
-    override def handle(event: ActionEvent): Unit = {
-      println(Global.zwAblage)
+    override def handle(event: ActionEvent): Unit =  {
+      if (Global.zwAblage != null){
+        val destination = Paths.get(getItem.toString)
+        FileSystemModel.copy(Global.zwAblage, destination)
+        if (Global.cutFlag){
+          FileSystemModel.removeRecursive(Global.zwAblage)
+          Global.cutFlag = false
+        }
+      }
+
     }
   })
 
   var menuCut = new MenuItem("Ausschneiden")
   menuCut.setOnAction(new EventHandler[ActionEvent] {
-    override def handle(event: ActionEvent): Unit = println("Cut")
+    override def handle(event: ActionEvent): Unit = {
+      Global.cutFlag = true
+      Global.zwAblage = Paths.get(getItem.toString)
+
+    }
   })
 
-  cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut)
+  var menuRemove = new MenuItem("Löschen")
+  menuRemove.setOnAction(new EventHandler[ActionEvent] {
+    override def handle(event: ActionEvent): Unit = {
+      FileSystemModel.removeRecursive(Paths.get(getItem.toString))
+    }
+  })
 
+  cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut, menuRemove)
 
-  def test: Unit = {}
 
   // Cell wechselt auf änderbaren Zustand; start bei Doppel-klick
   override def startEdit: Unit ={

@@ -15,7 +15,7 @@ object FileSystemModel {
 
   def move(sourcePath: Path, destinationPath: Path): Unit ={
     try{
-    Files.move(sourcePath, destinationPath,
+      Files.move(sourcePath, destinationPath,
         StandardCopyOption.REPLACE_EXISTING)
     } catch{
       case e: IOException => println("something went wrong")
@@ -24,47 +24,42 @@ object FileSystemModel {
 
   def copy (sourcePath: Path, destinationPath: Path): Unit={
     try {
-    Files.copy(sourcePath, destinationPath);
-     } catch{
+      val sub = sourcePath.toString.length - sourcePath.getFileName.toString.length
+      val sourceFile = new File(sourcePath.toString)
+      if(sourceFile.isDirectory){
+        Files.walkFileTree(sourcePath, new SimpleFileVisitor[Path](){ //ertsellt Unterordner
+          override def preVisitDirectory(sourcePath: Path, attr: BasicFileAttributes): FileVisitResult = {
+            val newDestFullPath = Paths.get(destinationPath.toString + "\\" + sourcePath.toString.substring(sub - 1))
+            Files.copy(sourcePath, newDestFullPath)
+            FileVisitResult.CONTINUE
+          }
+        })
+        Files.walkFileTree(sourcePath, new SimpleFileVisitor[Path]() { //erstellt Files
+          override def visitFile(sourcePath: Path, attr: BasicFileAttributes): FileVisitResult = {
+            val newDestFullPath = Paths.get(destinationPath.toString + "\\" + sourcePath.toString.substring(sub - 1))
+            Files.copy(sourcePath, newDestFullPath)
+            FileVisitResult.CONTINUE
+          }
+        })
+      }else {
+        Files.copy(sourcePath, Paths.get(destinationPath.toString + "\\" + sourcePath.getFileName.toString))
+      }
+
+    } catch{
       case e: FileAlreadyExistsException => println("FileAlreadyExists")
       case e: IOException => println ("something else went wrong")
     }
   }
-  /*def mkParent(file : File) : Unit = {
-    if (!file.getParentFile.exists()) {
-      file.getParentFile.mkdirs()
-    }
-  }
-  def writeToFile(file: File, content: String): File = {
-    Files.write(Paths.get(file.toURI), content.getBytes(StandardCharsets.UTF_8)).toFile
-  }
 
-  def fetch(url: URL): String = {
-    Source.fromURL(url).mkString
-  }
-
-  /**
-   * function to measure execution time of first function, optionally executing a display function,
-   * returning the time in milliseconds
-   */
-  def time[A](a: => A, display: Long => Unit = s => ()): A = {
-    val now = System.nanoTime
-    val result = a
-    val micros = (System.nanoTime - now) / 1000000
-    display(micros)
-    result
-  }*/
-
-  def showRecursive(path: Path): Unit = {
+  def removeRecursive(path: Path): Unit = {
     Files.walkFileTree(path, new SimpleFileVisitor[Path]() {
       override def visitFile(path: Path, attrs: BasicFileAttributes): FileVisitResult = {
-        println(path)
+        Files.delete(path)
         FileVisitResult.CONTINUE
       }
 
-     /* override def visitFileFailed(path: Path, exc: IOException): FileVisitResult = {
-       // Files.delete(path)
-        println("Hallo")
+      override def visitFileFailed(path: Path, exc: IOException): FileVisitResult = {
+        Files.delete(path)
         FileVisitResult.CONTINUE;
       }
 
@@ -75,7 +70,7 @@ object FileSystemModel {
         } else {
           throw exc
         }
-      }*/
+      }
     }
     )
   }
