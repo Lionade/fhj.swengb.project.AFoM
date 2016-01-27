@@ -30,20 +30,37 @@ object FileViewApp {
 
 class FileViewApp extends javafx.application.Application {
 
-  val loader = new FXMLLoader(getClass.getResource("/fhj/swengb/project/afom/FileViewer.fxml"))
+  val Fxml = "/fhj/swengb/project/afom/FileViewer.fxml"
+  val Css = "/fhj/swengb/project/afom/FileViewer.css"
+
+  //val loader = new FXMLLoader(getClass.getResource("/fhj/swengb/project/afom/FileViewer.fxml"))
+
+  def mkFxmlLoader(fxml: String): FXMLLoader = {
+    new FXMLLoader(getClass.getResource(fxml))
+  }
 
   override def start(stage: Stage): Unit =
     try {
       stage.setTitle("TableView Example App")
-      loader.load[Parent]()
-      stage.setScene(new Scene(loader.getRoot[Parent]))
+      setSkin(stage, Fxml, Css)
       stage.show()
+      stage.setMinWidth(stage.getWidth)
+      stage.setMinHeight(stage.getHeight)
     } catch {
       case NonFatal(e) => e.printStackTrace()
     }
+
+  def setSkin(stage: Stage, fxml: String, css: String): Boolean = {
+    val scene = new Scene(mkFxmlLoader(fxml).load[Parent]())
+    stage.setScene(scene)
+    stage.getScene.getStylesheets.clear()
+    stage.getScene.getStylesheets.add(css)
+  }
 }
 
+
 class FileViewController extends Initializable {
+  @FXML var refresh: Button = _
   @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
   @FXML var textfield: TextArea = _
@@ -121,6 +138,9 @@ class FileViewController extends Initializable {
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
 
+    refresh.setGraphic(new ImageView(new Image("/fhj/swengb/project/AFoM/refresh.png")))
+    columnModified.getStyleClass().add("column")
+    columnSize.getStyleClass().add("column")
 
     initTableViewColumn[String](columnName, _.nameProperty)
     initTableViewColumn[String](columnModified, _.modifiedProperty)

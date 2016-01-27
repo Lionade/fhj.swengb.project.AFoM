@@ -2,12 +2,13 @@ package fhj.swengb.project.afom
 
 import java.awt.event.MouseEvent
 import java.io
-import java.nio.file.{Path, Paths, Files}
+import java.nio.file.{LinkOption, Path, Paths, Files}
 import java.io.{IOException, File}
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.event.EventHandler
 import javafx.event.{EventHandler, ActionEvent}
 import javafx.scene.control.{MenuItem, ContextMenu, TreeCell, TextField}
+import javafx.scene.image.{Image, ImageView}
 import javafx.scene.input
 import javafx.scene.input._
 
@@ -127,6 +128,7 @@ class FileTreeCell[File] extends TreeCell[File]{
           createDir.setVisible(false)
           setContextMenu(cm)
         }
+        chooseCorrectFileIcon
       }
     }
   }
@@ -202,8 +204,47 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
-
   def getString: String = {
     if(getItem == null) "" else getItem.toString
   }
+
+  /**
+    * this function checks if the current Item (Treecell) type exists in one of the icon variables
+    * and sets te correct Icon in the ImageView
+    */
+
+  def chooseCorrectFileIcon():Unit = {
+    if (Files.isRegularFile(Paths.get(getItem.toString), LinkOption.NOFOLLOW_LINKS)) {
+      getItem match{
+        case image if imageTypes.exists(image.toString.contains (_) ) => setGraphic (new ImageView (new Image ("/fhj/swengb/project/AFoM/picture-icon.png") ) )
+        case word if wordTypes.exists(word.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/word-icon.png")))
+        case excel if excelTypes.exists(excel.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/excel-icon.png")))
+        case powerPoint if powerPointTypes.exists(powerPoint.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/powerpoint-icon.png")))
+        case mp3 if mp3Types.exists(mp3.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/mp3-icon.png")))
+        case video if videoTypes.exists(video.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/video-icon.png")))
+        case pdf if pdfTypes.exists(pdf.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/pdf-icon.png")))
+        case exe if exeFileTypes.exists(exe.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/file-exe-icon.png")))
+        case zip if zipTypes.exists(zip.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/zip-icon.png")))
+        case _ => setGraphic(new ImageView(new Image("/fhj/swengb/project/AFoM/file-icon.png")))
+      }
+    }
+    else{
+      setGraphic(new ImageView(new Image("/fhj/swengb/project/AFoM/folder-icon.png")))
+    }
+  }
+
+  /**
+    * Files which should be shown with an icon
+    */
+
+  lazy val imageTypes: List[String] = List (".jpg", ".png", ".ico", ".svg", ".bmp", ".gif", ".JPG", ".PNG")
+  lazy val wordTypes: List[String] = List(".doc",".docx",".odt", ".pages")
+  lazy val excelTypes: List[String] = List(".xls",".xlsx")
+  lazy val powerPointTypes: List[String] = List(".ppt",".pptx")
+  lazy val mp3Types: List[String] = List(".mp3", ".aac" )
+  lazy val pdfTypes: List[String] = List(".pdf")
+  lazy val videoTypes: List[String] = List(".mp4",".avi",".flv", ".mkv")
+  lazy val exeFileTypes: List[String] = List(".exe",".msi", ".pkg", ".EXE")
+  lazy val zipTypes: List[String] = List(".zip", ".7z", ".rar", ".tar", ".gz")
 }
+
