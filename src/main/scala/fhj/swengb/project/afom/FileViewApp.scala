@@ -46,6 +46,7 @@ class FileViewApp extends javafx.application.Application {
       stage.show()
       stage.setMinWidth(stage.getWidth)
       stage.setMinHeight(stage.getHeight)
+      stage.setResizable(false)
     } catch {
       case NonFatal(e) => e.printStackTrace()
     }
@@ -226,7 +227,8 @@ class FileViewController extends Initializable {
     rootItem = createNode(new File("c:/"))
     rootItem.setExpanded(true)
     tree = new TreeView[File](rootItem)
-    tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](_.getName)))
+    tree.setEditable(true)
+   // tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](_.getName)))
     scrollpane.setContent(tree)
   }
 
