@@ -10,11 +10,28 @@ import scala.io.Source
 
 /**
  * Created by Hoxha on 15.01.2016.
+  * This class contains various methods necessary for file transfer
  */
 object FileSystemModel {
 
+  def move(sourcePath: Path, destinationPath: Path): Unit ={
+    try{
+      Files.move(sourcePath, destinationPath,
+        StandardCopyOption.REPLACE_EXISTING)
+    } catch{
+      case e: IOException => println("something went wrong")
+    }
+  }
+
+  /**
+    * This method handles the recursive copy of files and directories
+    * @param sourcePath       sourcepath of the file
+    * @param destinationPath  destinationpath of the file
+    */
+
   def copy (sourcePath: Path, destinationPath: Path): Unit={
     try {
+
       val sub = sourcePath.toString.length - sourcePath.getFileName.toString.length
       val sourceFile = new File(sourcePath.toString)
       if(sourceFile.isDirectory){
@@ -39,8 +56,13 @@ object FileSystemModel {
     } catch{
       case e: FileAlreadyExistsException => println("FileAlreadyExists")
       case e: IOException => println ("something else went wrong")
-    }
+}
   }
+
+  /**
+    * This method removes files and directories and if necessary recursively
+    * @param path the path of the file/directory which has to be deleted
+    */
 
   def removeRecursive(path: Path): Unit = {
     Files.walkFileTree(path, new SimpleFileVisitor[Path]() {
