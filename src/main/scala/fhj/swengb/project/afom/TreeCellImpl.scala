@@ -3,11 +3,13 @@ package fhj.swengb.project.afom
 import java.awt.event.MouseEvent
 import java.io
 import java.nio.file.{Path, Paths, Files}
+import java.io.{IOException, File}
+import javafx.beans.property.SimpleIntegerProperty
 import javafx.event.EventHandler
 import javafx.event.{EventHandler, ActionEvent}
 import javafx.scene.control.{MenuItem, ContextMenu, TreeCell, TextField}
 import javafx.scene.input
-import javafx.scene.input.{KeyEvent, DragEvent, KeyCode}
+import javafx.scene.input._
 
 
 /**
@@ -16,11 +18,13 @@ import javafx.scene.input.{KeyEvent, DragEvent, KeyCode}
 object Global {
   var zwAblage: Path = null
   var cutFlag: Boolean = false
+  val dragIndex = new SimpleIntegerProperty(-1)
 }
 
 
 // TODO: Namen nicht durch vollen Path ersetzen nach bearbeitung
-class TxtFieledCell[File] extends TreeCell[File]{
+class FileTreeCell[File] extends TreeCell[File]{
+  import Global._
   var txtField: TextField = _
   var cm: ContextMenu = new ContextMenu()
 
@@ -29,15 +33,13 @@ class TxtFieledCell[File] extends TreeCell[File]{
   menuRename.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
       startEdit
-      //tree.edit(tree.getSelectionModel.getSelectedItem) //Finds current TreeItem and edits it
     }
   })
 
   var menuCopy = new MenuItem("Kopieren")
   menuCopy.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit ={
-      Global.zwAblage = Paths.get(getItem.toString)
-      //Global.zwAblage = Paths.get(tree.getSelectionModel.getSelectedItem.getValue.toString)
+      zwAblage = Paths.get(getItem.toString)
     }
 
   })
@@ -45,12 +47,12 @@ class TxtFieledCell[File] extends TreeCell[File]{
   var menuPaste = new MenuItem("Einfügen")
   menuPaste.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit =  {
-      if (Global.zwAblage != null){
+      if (zwAblage != null){
         val destination = Paths.get(getItem.toString)
-        FileSystemModel.copy(Global.zwAblage, destination)
-        if (Global.cutFlag){
-          FileSystemModel.removeRecursive(Global.zwAblage)
-          Global.cutFlag = false
+        FileSystemModel.copy(zwAblage, destination)
+        if (cutFlag){
+          FileSystemModel.removeRecursive(zwAblage)
+          cutFlag = false
         }
       }
 
@@ -60,9 +62,8 @@ class TxtFieledCell[File] extends TreeCell[File]{
   var menuCut = new MenuItem("Ausschneiden")
   menuCut.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
-      Global.cutFlag = true
-      Global.zwAblage = Paths.get(getItem.toString)
-
+      cutFlag = true
+      zwAblage = Paths.get(getItem.toString)
     }
   })
 
@@ -111,7 +112,7 @@ class TxtFieledCell[File] extends TreeCell[File]{
       else{
         setText(getString)
         setGraphic(getTreeItem.getGraphic)
-        setContextMenu(cm)
+      //  setContextMenu(cm)
       }
     }
   }
@@ -134,23 +135,57 @@ class TxtFieledCell[File] extends TreeCell[File]{
   }
 
   setOnDragDetected(new EventHandler[input.MouseEvent] {
-    override def handle(event: input.MouseEvent): Unit = println("dragDetected")
+    override def handle(event: input.MouseEvent): Unit = {
+      if(!isEmpty){
+        println("dragDetected")
+        dragIndex.set(getIndex) //Eigenen Index hineinspeichern
+        zwAblage = Paths.get(getItem.toString)
+        val db = startDragAndDrop(TransferMode.MOVE)
+
+        val cc = new ClipboardContent
+        cc.putString(getItem.toString)
+        db.setContent(cc)
+      }
+    }
   })
 
+  setOnDragOver(new EventHandler[input.DragEvent] {
+    override def handle(event: input.DragEvent): Unit = {
+      if(dragIndex.get() >= 0 && dragIndex.get() != getIndex && getItem.asInstanceOf[java.io.File].isDirectory) {
+        event.acceptTransferModes(TransferMode.MOVE)
+      }
+    }
+  })
+
+
   setOnDragEntered(new EventHandler[DragEvent] {
-    override def handle(event: DragEvent): Unit = println("DragEntered")
+    override def handle(event: DragEvent): Unit = {
+      if(dragIndex.get() >= 0 && dragIndex.get() != getIndex && getItem.asInstanceOf[java.io.File].isDirectory) {
+        setStyle("-fx-background-color: gold;")
+      }
+    }
   })
 
   setOnDragExited(new EventHandler[DragEvent] {
-    override def handle(event: DragEvent): Unit = println("DragExited")
+    override def handle(event: DragEvent): Unit = {
+      setStyle("")
+    }
   })
 
   setOnDragDropped(new EventHandler[DragEvent] {
-    override def handle(event: DragEvent): Unit = println("DragDropped")
+    override def handle(event: DragEvent): Unit = {
+      if (zwAblage != null){
+        FileSystemModel.copy(zwAblage, Paths.get(getItem.toString))
+        FileSystemModel.removeRecursive(zwAblage)
+      }
+    }
   })
 
   setOnDragDone(new EventHandler[DragEvent] {
-    override def handle(event: DragEvent): Unit = println("DragDone")
+    override def handle(event: DragEvent): Unit = {
+      dragIndex.set(-1)
+      // Refresh
+    }
   })
 
 

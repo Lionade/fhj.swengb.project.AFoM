@@ -24,9 +24,9 @@ object TvUtils {
   }
 
 
-  def mkNewCell[T](typeToString: T => String)(lv: TreeView[T]): TxtFieledCell[T] = {
+  def mkNewCell[T](typeToString: T => String)(lv: TreeView[T]): FileTreeCell[T] = {
 
-    class newCell extends TxtFieledCell[T] {
+    class newCell extends FileTreeCell[T] {
       override def updateItem(t: T, empty: Boolean): Unit = {
         super.updateItem(t, empty)
         if (t != null) {
