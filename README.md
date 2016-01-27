@@ -31,3 +31,6 @@ This project models a filebrowser like the one you know from Windows, MacOS or L
 - opening files with standard program
 
 This project was developed as part of our software development course
+
+
+![Screenshot](app_screenshot.png)
