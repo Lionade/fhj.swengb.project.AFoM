@@ -51,7 +51,7 @@ object DataSource {
 
   def addFiles(files: Array[File]): Array[FileAttributes] = {
     if(files != null)
-      files.map(f => FileAttributes(f.getName(),f.lastModified().toString, (f.length()/1024).toInt))
+      files.map(f => FileAttributes(if(f.isDirectory){"> " + f.getName()} else f.getName(),f.lastModified().toString, (f.length()/1024).toInt))
     else
       Array[FileAttributes]()
   }
