@@ -63,7 +63,8 @@ class FileViewApp extends javafx.application.Application {
 
 class FileViewController extends Initializable {
   @FXML var refresh: Button = _
-  @FXML var scrollpane: ScrollPane = _
+  @FXML var treeview: TreeView[File] = _
+//  @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
   @FXML var textfield: TextArea = _
 
@@ -92,7 +93,7 @@ class FileViewController extends Initializable {
 
   var rootItem = createNode(new File("c:/"))
   rootItem.setExpanded(true)
-  var tree = new TreeView[File](rootItem)
+
 
   def createNode(f: File): TreeItem[File] = {
     new TreeItem[File](f){
@@ -148,10 +149,10 @@ class FileViewController extends Initializable {
     initTableViewColumn[String](columnModified, _.modifiedProperty)
     initTableViewColumn[Int](columnSize, _.sizeProperty)
 
-    tree.setId("TreeView")
-    tree.setEditable(true)
+    treeview.setId("TreeView")
+    treeview.setEditable(true)
 
-    tree.setCellFactory(new Callback[TreeView[File],TreeCell[File]]() {
+    treeview.setCellFactory(new Callback[TreeView[File],TreeCell[File]]() {
       override def call(p: TreeView[File]): TreeCell[File] = {
         val cell: FileTreeCell[File] = new FileTreeCell[File]
         cell
@@ -159,9 +160,9 @@ class FileViewController extends Initializable {
     })
 
     tableView.addEventHandler(MouseEvent.MOUSE_PRESSED, mouseClickedEventTableView)
-    tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
+    treeview.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
 
-    scrollpane.setContent(tree)
+    treeview.setRoot(rootItem)
   }
 
 
@@ -169,7 +170,7 @@ class FileViewController extends Initializable {
     def handle(event: MouseEvent): Unit = {
       if (event.getClickCount() == 2) {
         //gets fileDirectory from tree
-        val fileDirectory: File = tree.getSelectionModel.getSelectedItem.getValue
+        val fileDirectory: File = treeview.getSelectionModel.getSelectedItem.getValue
         //gets selected tableposition
         val pos = tableView.getSelectionModel().getSelectedCells().get(0)
 
@@ -192,7 +193,7 @@ class FileViewController extends Initializable {
 
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
     def handle(event: MouseEvent): Unit = {
-      val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
+      val fileDirectory: TreeItem[File] = treeview.getSelectionModel.getSelectedItem
       if(fileDirectory != null) {
         if (fileDirectory.isLeaf) {
           val fullPath: File = fileDirectory.getValue
@@ -233,12 +234,11 @@ class FileViewController extends Initializable {
   def onRefresh: Unit = {
     rootItem = createNode(new File("c:/"))
     rootItem.setExpanded(true)
-    tree = new TreeView[File](rootItem)
-    tree.setEditable(true)
-    tree.refresh()
-   // tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](_.getName)))
-    scrollpane.setContent(tree)
 
+    treeview.setRoot(rootItem)
+    treeview.setEditable(true)
+
+    treeview.refresh()
   }
 
 
