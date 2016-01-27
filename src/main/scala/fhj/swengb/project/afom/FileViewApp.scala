@@ -86,9 +86,9 @@ class FileViewController extends Initializable {
     initTableViewColumnCellValueFactory[MutableFileAttributes, T]
 
 
-  val rootItem = createNode(new File("c:/"))
+  var rootItem = createNode(new File("c:/"))
   rootItem.setExpanded(true)
-  val tree = new TreeView[File](rootItem)
+  var tree = new TreeView[File](rootItem)
 
   def createNode(f: File): TreeItem[File] = {
     new TreeItem[File](f){
@@ -143,7 +143,7 @@ class FileViewController extends Initializable {
 
     tree.setId("TreeView")
     tree.setEditable(true)
-    tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](fileToString(_))))
+    tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](_.getName)))
 
     tableView.addEventHandler(MouseEvent.MOUSE_PRESSED, mouseClickedEventTableView)
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
@@ -223,6 +223,14 @@ class FileViewController extends Initializable {
       }
 
     }
+  }
+
+  def onRefresh: Unit = {
+    rootItem = createNode(new File("c:/"))
+    rootItem.setExpanded(true)
+    tree = new TreeView[File](rootItem)
+    tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](_.getName)))
+    scrollpane.setContent(tree)
   }
 
 
