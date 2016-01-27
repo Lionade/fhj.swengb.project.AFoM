@@ -118,7 +118,7 @@ class FileTreeCell[File] extends TreeCell[File]{
         setGraphic(txtField)
       }
       else{
-        setText(getString)
+        setText(getItem.asInstanceOf[java.io.File].getName)
         setGraphic(getTreeItem.getGraphic)
         if(getItem.asInstanceOf[java.io.File].isDirectory) {
           createDir.setVisible(true) // Menüitem wird nur bei Directory angezeigt

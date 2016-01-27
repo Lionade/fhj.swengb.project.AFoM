@@ -12,29 +12,6 @@ import scala.collection.JavaConversions
   */
 object TvUtils {
 
-  def mkTreeCellFactory[T](f: TreeView[T] => TreeCell[T]): Callback[TreeView[T], TreeCell[T]] = {
-    new Callback[TreeView[T], TreeCell[T]] {
-      override def call(param: TreeView[T]): TreeCell[T] = f(param)
-    }
-  }
-
-
-  def mkNewCell[T](tToString: T => String)(tv: TreeView[T]): FileTreeCell[T] = {
-
-    class newCell extends FileTreeCell[T] {
-      override def updateItem(t: T, empty: Boolean): Unit = {
-        super.updateItem(t, empty)
-        if (t != null) {
-          setText(tToString(t))
-        }
-        else setText(null)
-      }
-    }
-    new newCell()
-  }
-
-  //----------------------Tableview-----------------------
-
   type TCDF[S, T] = TableColumn.CellDataFeatures[S, T]
 
   import JavaConversions._

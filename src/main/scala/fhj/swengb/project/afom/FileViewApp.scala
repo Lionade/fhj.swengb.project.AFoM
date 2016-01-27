@@ -13,6 +13,7 @@ import javafx.scene.image.{ImageView, Image}
 import javafx.scene.input.{MouseButton, MouseEvent}
 import javafx.scene.{Scene, Parent}
 import javafx.stage.Stage
+import javafx.util.Callback
 
 import scala.io.Source
 import scala.util.control.NonFatal
@@ -149,7 +150,13 @@ class FileViewController extends Initializable {
 
     tree.setId("TreeView")
     tree.setEditable(true)
-    tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](_.getName)))
+
+    tree.setCellFactory(new Callback[TreeView[File],TreeCell[File]]() {
+      override def call(p: TreeView[File]): TreeCell[File] = {
+        val cell: FileTreeCell[File] = new FileTreeCell[File]
+        cell
+      }
+    })
 
     tableView.addEventHandler(MouseEvent.MOUSE_PRESSED, mouseClickedEventTableView)
     tree.addEventHandler(MouseEvent.MOUSE_CLICKED, mouseClickedEvent) //throughs null pointer exceptions
@@ -228,8 +235,10 @@ class FileViewController extends Initializable {
     rootItem.setExpanded(true)
     tree = new TreeView[File](rootItem)
     tree.setEditable(true)
+    tree.refresh()
    // tree.setCellFactory(mkTreeCellFactory(mkNewCell[File](_.getName)))
     scrollpane.setContent(tree)
+
   }
 
 
