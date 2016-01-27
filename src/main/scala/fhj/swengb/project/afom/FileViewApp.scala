@@ -42,7 +42,7 @@ class FileViewApp extends javafx.application.Application {
 
   override def start(stage: Stage): Unit =
     try {
-      stage.setTitle("TableView Example App")
+      stage.setTitle("AFoM - App")
       setSkin(stage, Fxml, Css)
       stage.show()
       stage.setMinWidth(stage.getWidth)
@@ -64,7 +64,6 @@ class FileViewApp extends javafx.application.Application {
 class FileViewController extends Initializable {
   @FXML var refresh: Button = _
   @FXML var treeview: TreeView[File] = _
-//  @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
   @FXML var textfield: TextArea = _
 
@@ -232,6 +231,8 @@ class FileViewController extends Initializable {
   }
 
   def onRefresh: Unit = {
+    treeview.focusModelProperty()
+
     rootItem = createNode(new File("c:/"))
     rootItem.setExpanded(true)
 

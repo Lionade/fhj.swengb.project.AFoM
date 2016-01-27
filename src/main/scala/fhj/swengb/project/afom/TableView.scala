@@ -1,6 +1,9 @@
 package fhj.swengb.project.afom
 
 import java.io.File
+import java.nio.file.Files._
+import java.nio.file.Paths
+import java.nio.file.attribute.BasicFileAttributeView
 import javafx.beans.property.{SimpleIntegerProperty, SimpleStringProperty}
 
 import com.sun.deploy.util.ArrayUtil
@@ -51,7 +54,11 @@ object DataSource {
 
   def addFiles(files: Array[File]): Array[FileAttributes] = {
     if(files != null)
-      files.map(f => FileAttributes(if(f.isDirectory){"> " + f.getName()} else f.getName(),f.lastModified().toString, (f.length()/1024).toInt))
+      files.map(f => FileAttributes(if(f.isDirectory){"> " + f.getName()} else f.getName(),
+        getFileAttributeView(Paths.get(f.toString()),
+          classOf[BasicFileAttributeView]).readAttributes().lastModifiedTime().toString.take(19).replace("T", " "),
+        (f.length()/1024).toInt))
+
     else
       Array[FileAttributes]()
   }

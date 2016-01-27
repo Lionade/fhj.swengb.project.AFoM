@@ -14,15 +14,6 @@ import scala.io.Source
  */
 object FileSystemModel {
 
-  def move(sourcePath: Path, destinationPath: Path): Unit ={
-    try{
-      Files.move(sourcePath, destinationPath,
-        StandardCopyOption.REPLACE_EXISTING)
-    } catch{
-      case e: IOException => println("something went wrong")
-    }
-  }
-
   /**
     * This method handles the recursive copy of files and directories
     * @param sourcePath       sourcepath of the file

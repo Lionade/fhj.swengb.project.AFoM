@@ -18,18 +18,17 @@ import javafx.scene.input._
   */
 object Global {
   var zwAblage: Path = null
-  var cutFlag: Boolean = false
+  var cutFlag: Boolean = false //If cut: true; if copy: false
   val dragIndex = new SimpleIntegerProperty(-1)
 }
 
 
-// TODO: Namen nicht durch vollen Path ersetzen nach bearbeitung
 class FileTreeCell[File] extends TreeCell[File]{
   import Global._
   var txtField: TextField = _
   var cm: ContextMenu = new ContextMenu()
 
-  //Context Einträge
+  //Context Entries
   var menuRename = new MenuItem("Umbenennen")
   menuRename.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
@@ -133,7 +132,10 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   }
 
-  // Änderung des TreeItems bei Enter auf neuen Wert und bei Escape auf alten
+  /**
+    * Creates a Textfield that can be changed.
+    * Commiting with Enter, Canceling with ESC
+    */
   def createTextField() = {
     txtField = new TextField(getString)
     txtField.setOnKeyReleased(new EventHandler[input.KeyEvent] {
@@ -149,6 +151,10 @@ class FileTreeCell[File] extends TreeCell[File]{
     })
   }
 
+  /**
+    * Starts Drag and Drop.
+    * Copies dragged Item in clipboard
+    */
   setOnDragDetected(new EventHandler[input.MouseEvent] {
     override def handle(event: input.MouseEvent): Unit = {
       if(!isEmpty){
@@ -164,6 +170,9 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
+  /**
+    * Accepts transfer if it is a Directory
+    */
   setOnDragOver(new EventHandler[input.DragEvent] {
     override def handle(event: input.DragEvent): Unit = {
       if(dragIndex.get() >= 0 && dragIndex.get() != getIndex && getItem.asInstanceOf[java.io.File].isDirectory) {
@@ -172,7 +181,9 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
-
+  /**
+    * When hoovering over other cell
+    */
   setOnDragEntered(new EventHandler[DragEvent] {
     override def handle(event: DragEvent): Unit = {
       if(dragIndex.get() >= 0 && dragIndex.get() != getIndex && getItem.asInstanceOf[java.io.File].isDirectory) {
