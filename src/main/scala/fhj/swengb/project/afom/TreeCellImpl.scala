@@ -28,7 +28,9 @@ class FileTreeCell[File] extends TreeCell[File]{
   var txtField: TextField = _
   var cm: ContextMenu = new ContextMenu()
 
-  //Context Einträge
+  /**
+    * zum Umbenennen von Items
+    */
   var menuRename = new MenuItem("Umbenennen")
   menuRename.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
@@ -36,6 +38,9 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
+  /**
+    * zum Kopieren von Items
+    */
   var menuCopy = new MenuItem("Kopieren")
   menuCopy.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit ={
@@ -44,6 +49,9 @@ class FileTreeCell[File] extends TreeCell[File]{
 
   })
 
+  /**
+    * zum Einfügen von Items
+    */
   var menuPaste = new MenuItem("Einfügen")
   menuPaste.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit =  {
@@ -59,6 +67,9 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
+  /**
+    * zum Ausschneiden von Items
+    */
   var menuCut = new MenuItem("Ausschneiden")
   menuCut.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
@@ -67,6 +78,9 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
+  /**
+    * zum Löschen von Items
+    */
   var menuRemove = new MenuItem("Löschen")
   menuRemove.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
@@ -77,7 +91,9 @@ class FileTreeCell[File] extends TreeCell[File]{
   cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut, menuRemove)
 
 
-  // Cell wechselt auf änderbaren Zustand; start bei Doppel-klick
+  /**
+    * Cell wechselt auf änderbaren Zustand; start bei Doppel-klick
+    */
   override def startEdit: Unit ={
     super.startEdit()
     if(txtField == null) createTextField()
@@ -94,7 +110,11 @@ class FileTreeCell[File] extends TreeCell[File]{
     setGraphic(getTreeItem.getGraphic)
   }
 
-  // Falls File verändert wird in TextField reinschreiben
+  /**
+    * Falls File verändert wird in TextField reinschreiben
+    * @param item
+    * @param empty
+    */
   override def updateItem(item: File, empty: Boolean): Unit ={
     super.updateItem(item, empty)
     if(empty){ // Wenn Item leer Text und Anzeige auf null setzen
@@ -117,7 +137,9 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   }
 
-  // Änderung des TreeItems bei Enter auf neuen Wert und bei Escape auf alten
+  /**
+    * Änderung des TreeItems bei Enter auf neuen Wert und bei Escape auf alten
+    */
   def createTextField() = {
     txtField = new TextField(getString)
     txtField.setOnKeyReleased(new EventHandler[input.KeyEvent] {

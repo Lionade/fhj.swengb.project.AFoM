@@ -225,6 +225,9 @@ class FileViewController extends Initializable {
     }
   }
 
+  /**
+    * this method refreshes the treeview
+    */
   def onRefresh: Unit = {
     rootItem = createNode(new File("c:/"))
     rootItem.setExpanded(true)
