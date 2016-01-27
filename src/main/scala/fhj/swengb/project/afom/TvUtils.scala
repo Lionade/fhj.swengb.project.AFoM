@@ -1,6 +1,5 @@
 package fhj.swengb.project.afom
 
-import java.io.File
 import javafx.beans.value.ObservableValue
 import javafx.collections.{FXCollections, ObservableList}
 import javafx.scene.control.{TableColumn, TreeCell, TreeView}
@@ -19,18 +18,14 @@ object TvUtils {
     }
   }
 
-  def fileToString(f: File): String ={
-    f.getName
-  }
 
-
-  def mkNewCell[T](typeToString: T => String)(lv: TreeView[T]): FileTreeCell[T] = {
+  def mkNewCell[T](tToString: T => String)(tv: TreeView[T]): FileTreeCell[T] = {
 
     class newCell extends FileTreeCell[T] {
       override def updateItem(t: T, empty: Boolean): Unit = {
         super.updateItem(t, empty)
         if (t != null) {
-          setText(typeToString(t))
+          setText(tToString(t))
         }
         else setText(null)
       }

@@ -1,11 +1,7 @@
 package fhj.swengb.project.afom
 
-import java.awt.event.MouseEvent
-import java.io
 import java.nio.file.{Path, Paths, Files}
-import java.io.{IOException, File}
 import javafx.beans.property.SimpleIntegerProperty
-import javafx.event.EventHandler
 import javafx.event.{EventHandler, ActionEvent}
 import javafx.scene.control.{MenuItem, ContextMenu, TreeCell, TextField}
 import javafx.scene.input
@@ -74,8 +70,15 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
-  cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut, menuRemove)
+  var createDir = new MenuItem("Ordner erstellen")
+  createDir.setOnAction(new EventHandler[ActionEvent] {
+    override def handle(event: ActionEvent): Unit = {
+      FileSystemModel.createDir(Paths.get(getItem.toString, "Neuer Ordner"))
+    }
+  })
 
+  createDir.setVisible(false)
+  cm.getItems().addAll(createDir, menuRename,menuCopy,menuPaste,menuCut, menuRemove)
 
   // Cell wechselt auf änderbaren Zustand; start bei Doppel-klick
   override def startEdit: Unit ={
@@ -90,7 +93,7 @@ class FileTreeCell[File] extends TreeCell[File]{
   // Cell schließt änderbaren Zustand
   override def cancelEdit: Unit = {
     super.cancelEdit
-    setText(getString)
+    setText(getItem.asInstanceOf[java.io.File].getName)
     setGraphic(getTreeItem.getGraphic)
   }
 
@@ -112,7 +115,14 @@ class FileTreeCell[File] extends TreeCell[File]{
       else{
         setText(getString)
         setGraphic(getTreeItem.getGraphic)
-      //  setContextMenu(cm)
+        if(getItem.asInstanceOf[java.io.File].isDirectory) {
+          createDir.setVisible(true) // Menüitem wird nur bei Directory angezeigt
+          setContextMenu(cm)
+        }
+        else{
+          createDir.setVisible(false)
+          setContextMenu(cm)
+        }
       }
     }
   }
@@ -126,8 +136,7 @@ class FileTreeCell[File] extends TreeCell[File]{
         if(event.getCode == KeyCode.ENTER) {
           val oldItem = getItem
           commitEdit(new java.io.File(txtField.getText()).asInstanceOf[File])
-          Files.move(Paths.get(oldItem.toString), Paths.get(getItem.toString)) // Errorhandling falls von anderer Datei benützt wird
-          //FileSystemModel.move(Paths.get(oldItem.toString), Paths.get(getItem.toString)) //Überschreibung
+          Files.move(Paths.get(oldItem.toString), Paths.get(getItem.toString))
         }
         else if(event.getCode == KeyCode.ESCAPE) cancelEdit()
       }
@@ -162,6 +171,7 @@ class FileTreeCell[File] extends TreeCell[File]{
     override def handle(event: DragEvent): Unit = {
       if(dragIndex.get() >= 0 && dragIndex.get() != getIndex && getItem.asInstanceOf[java.io.File].isDirectory) {
         setStyle("-fx-background-color: gold;")
+        getTreeItem.setExpanded(true)
       }
     }
   })
@@ -187,8 +197,6 @@ class FileTreeCell[File] extends TreeCell[File]{
       // Refresh
     }
   })
-
-
 
 
   def getString: String = {

@@ -1,35 +1,20 @@
 package fhj.swengb.project.afom
 
 import java.awt.Desktop
-import java.awt.event.KeyEvent
-import javafx.beans.property.{SimpleDoubleProperty, SimpleStringProperty, SimpleIntegerProperty}
-import scala.collection.immutable.IndexedSeq
-import scala.reflect._
 import java.io.{IOException, File}
 import java.net.URL
-import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file._
 import java.util.ResourceBundle
 import javafx.application.Application
-import javafx.beans.value.ObservableValue
 import javafx.collections.{ObservableList, FXCollections}
-import javafx.event.{ActionEvent, EventHandler}
+import javafx.event.{EventHandler}
 import javafx.fxml.{FXML, Initializable, FXMLLoader}
 import javafx.scene.control._
 import javafx.scene.image.{ImageView, Image}
-import javafx.scene.input.{KeyCode, MouseButton, ContextMenuEvent, MouseEvent}
-import javafx.scene.layout._
-import javafx.scene.{input, Scene, Parent}
+import javafx.scene.input.{MouseButton, MouseEvent}
+import javafx.scene.{Scene, Parent}
 import javafx.stage.Stage
-import javafx.util.Callback
-import javax.activation.MimetypesFileTypeMap
 
-
-
-import scala.collection.JavaConversions
 import scala.io.Source
-import scala.reflect.ClassTag
-import scala.util.Random
 import scala.util.control.NonFatal
 
 
@@ -180,48 +165,38 @@ class FileViewController extends Initializable {
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
     def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
-
-      event.getButton match{
-        case MouseButton.PRIMARY =>
-         // cm.hide() //Versteckt Context Menü bei links-klick wieder
-          if(fileDirectory != null) {
-            if (fileDirectory.isLeaf) {
-              val fullPath: File = fileDirectory.getValue
-              val fileCategory = FileCategory(fullPath)
-              fileCategory match {
-                case "image" =>
-                  image.setImage(new Image(fullPath.toURI.toString))
-                  image.setVisible(true)
-                  textfield.setVisible(false)
-                  tableView.setVisible(false)
-                case "text" =>
-                  var text = ""
-                  val bufferedSource = Source.fromFile(fullPath)
-                  for (line <- bufferedSource.getLines()) {
-                    text = text + "\n" + line.toString
-                  }
-                  bufferedSource.close
-                  textfield.setText(text)
-                  image.setVisible(false)
-                  tableView.setVisible(false)
-                  textfield.setVisible(true)
-                case _ =>
-                  println("Tableview anzeigen")
-                  image.setVisible(false)
-                  textfield.setVisible(false)
+      if(fileDirectory != null) {
+        if (fileDirectory.isLeaf) {
+          val fullPath: File = fileDirectory.getValue
+          val fileCategory = FileCategory(fullPath)
+          fileCategory match {
+            case "image" =>
+              image.setImage(new Image(fullPath.toURI.toString))
+              image.setVisible(true)
+              textfield.setVisible(false)
+              tableView.setVisible(false)
+            case "text" =>
+              var text = ""
+              val bufferedSource = Source.fromFile(fullPath)
+              for (line <- bufferedSource.getLines()) {
+                text = text + "\n" + line.toString
               }
-            } else {
-              println("Tableview anzeigen")
-              tableView.setVisible(true)
-              val direcory: File = fileDirectory.getValue
-              mutableFileAttributes = mkObservableList(DataSource.addFiles(direcory.listFiles()).map(MutableFileAttributes(_)))
-              tableView.setItems(mutableFileAttributes)
-            }
+              bufferedSource.close
+              textfield.setText(text)
+              image.setVisible(false)
+              tableView.setVisible(false)
+              textfield.setVisible(true)
+            case _ =>
+              image.setVisible(false)
+              textfield.setVisible(false)
           }
-        case MouseButton.SECONDARY => printf("rechts-klick")
-       //    cm.show(tree, event.getScreenX, event.getScreenY)
+        } else {
+          tableView.setVisible(true)
+          val direcory: File = fileDirectory.getValue
+          mutableFileAttributes = mkObservableList(DataSource.addFiles(direcory.listFiles()).map(MutableFileAttributes(_)))
+          tableView.setItems(mutableFileAttributes)
+        }
       }
-
     }
   }
 

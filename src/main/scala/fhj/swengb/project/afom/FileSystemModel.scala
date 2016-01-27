@@ -13,15 +13,6 @@ import scala.io.Source
  */
 object FileSystemModel {
 
-  def move(sourcePath: Path, destinationPath: Path): Unit ={
-    try{
-      Files.move(sourcePath, destinationPath,
-        StandardCopyOption.REPLACE_EXISTING)
-    } catch{
-      case e: IOException => println("something went wrong")
-    }
-  }
-
   def copy (sourcePath: Path, destinationPath: Path): Unit={
     try {
       val sub = sourcePath.toString.length - sourcePath.getFileName.toString.length
@@ -73,5 +64,15 @@ object FileSystemModel {
       }
     }
     )
+  }
+
+  def createDir(path: Path): Unit = {
+    try{
+      Files.createDirectory(path)
+    }
+    catch{
+      case a: FileAlreadyExistsException => println("File mit dem Namen existiert bereits")
+      case b: IOException => println("Es ist ein Fehler aufgetreten")
+    }
   }
 }
