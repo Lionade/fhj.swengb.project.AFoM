@@ -213,8 +213,10 @@ class FileViewController extends Initializable {
         } else {
           tableView.setVisible(true)
           val direcory: File = fileDirectory.getValue
-          mutableFileAttributes = mkObservableList(DataSource.addFiles(direcory.listFiles()).map(MutableFileAttributes(_)))
-          tableView.setItems(mutableFileAttributes)
+          if(direcory != null){
+            mutableFileAttributes = mkObservableList(DataSource.addFiles(direcory.listFiles()).map(MutableFileAttributes(_)))
+            tableView.setItems(mutableFileAttributes)
+          }
         }
       }
     }

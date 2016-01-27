@@ -3,6 +3,8 @@ package fhj.swengb.project.afom
 import java.io.File
 import javafx.beans.property.{SimpleIntegerProperty, SimpleStringProperty}
 
+import com.sun.deploy.util.ArrayUtil
+
 /**
  * Created by Hoxha on 22.01.2016.
  */
@@ -48,6 +50,9 @@ object MutableFileAttributes {
 object DataSource {
 
   def addFiles(files: Array[File]): Array[FileAttributes] = {
-    files.map(f => FileAttributes(f.getName(),f.lastModified().toString, (f.length()/1024).toInt))
+    if(files != null)
+      files.map(f => FileAttributes(f.getName(),f.lastModified().toString, (f.length()/1024).toInt))
+    else
+      Array[FileAttributes]()
   }
 }
