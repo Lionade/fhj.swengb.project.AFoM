@@ -1,35 +1,20 @@
 package fhj.swengb.project.afom
 
 import java.awt.Desktop
-import java.awt.event.KeyEvent
-import javafx.beans.property.{SimpleDoubleProperty, SimpleStringProperty, SimpleIntegerProperty}
-import scala.collection.immutable.IndexedSeq
-import scala.reflect._
 import java.io.{IOException, File}
 import java.net.URL
-import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file._
 import java.util.ResourceBundle
 import javafx.application.Application
-import javafx.beans.value.ObservableValue
 import javafx.collections.{ObservableList, FXCollections}
-import javafx.event.{ActionEvent, EventHandler}
+import javafx.event.{EventHandler}
 import javafx.fxml.{FXML, Initializable, FXMLLoader}
 import javafx.scene.control._
 import javafx.scene.image.{ImageView, Image}
-import javafx.scene.input.{KeyCode, MouseButton, ContextMenuEvent, MouseEvent}
-import javafx.scene.layout._
-import javafx.scene.{input, Scene, Parent}
+import javafx.scene.input.{MouseButton, MouseEvent}
+import javafx.scene.{Scene, Parent}
 import javafx.stage.Stage
-import javafx.util.Callback
-import javax.activation.MimetypesFileTypeMap
 
-
-
-import scala.collection.JavaConversions
 import scala.io.Source
-import scala.reflect.ClassTag
-import scala.util.Random
 import scala.util.control.NonFatal
 
 
@@ -45,20 +30,37 @@ object FileViewApp {
 
 class FileViewApp extends javafx.application.Application {
 
-  val loader = new FXMLLoader(getClass.getResource("/fhj/swengb/project/afom/FileViewer.fxml"))
+  val Fxml = "/fhj/swengb/project/afom/FileViewer.fxml"
+  val Css = "/fhj/swengb/project/afom/FileViewer.css"
+
+  //val loader = new FXMLLoader(getClass.getResource("/fhj/swengb/project/afom/FileViewer.fxml"))
+
+  def mkFxmlLoader(fxml: String): FXMLLoader = {
+    new FXMLLoader(getClass.getResource(fxml))
+  }
 
   override def start(stage: Stage): Unit =
     try {
       stage.setTitle("TableView Example App")
-      loader.load[Parent]()
-      stage.setScene(new Scene(loader.getRoot[Parent]))
+      setSkin(stage, Fxml, Css)
       stage.show()
+      stage.setMinWidth(stage.getWidth)
+      stage.setMinHeight(stage.getHeight)
     } catch {
       case NonFatal(e) => e.printStackTrace()
     }
+
+  def setSkin(stage: Stage, fxml: String, css: String): Boolean = {
+    val scene = new Scene(mkFxmlLoader(fxml).load[Parent]())
+    stage.setScene(scene)
+    stage.getScene.getStylesheets.clear()
+    stage.getScene.getStylesheets.add(css)
+  }
 }
 
+
 class FileViewController extends Initializable {
+  @FXML var refresh: Button = _
   @FXML var scrollpane: ScrollPane = _
   @FXML var image: ImageView = _
   @FXML var textfield: TextArea = _
@@ -136,6 +138,9 @@ class FileViewController extends Initializable {
 
   override def initialize(location: URL, resources: ResourceBundle): Unit = {
 
+    refresh.setGraphic(new ImageView(new Image("/fhj/swengb/project/AFoM/refresh.png")))
+    columnModified.getStyleClass().add("column")
+    columnSize.getStyleClass().add("column")
 
     initTableViewColumn[String](columnName, _.nameProperty)
     initTableViewColumn[String](columnModified, _.modifiedProperty)
@@ -180,54 +185,41 @@ class FileViewController extends Initializable {
   def mouseClickedEvent[_ >:MouseEvent] = new EventHandler[MouseEvent](){
     def handle(event: MouseEvent): Unit = {
       val fileDirectory: TreeItem[File] = tree.getSelectionModel.getSelectedItem
-
-      event.getButton match{
-        case MouseButton.PRIMARY =>
-         // cm.hide() //Versteckt Context Menü bei links-klick wieder
-          if(fileDirectory != null) {
-            if (fileDirectory.isLeaf) {
-              val fullPath: File = fileDirectory.getValue
-              val fileCategory = FileCategory(fullPath)
-              fileCategory match {
-                case "image" =>
-                  image.setImage(new Image(fullPath.toURI.toString))
-                  image.setVisible(true)
-                  textfield.setVisible(false)
-                  tableView.setVisible(false)
-                case "text" =>
-                  var text = ""
-                  val bufferedSource = Source.fromFile(fullPath)
-                  for (line <- bufferedSource.getLines()) {
-                    text = text + "\n" + line.toString
-                  }
-                  bufferedSource.close
-                  textfield.setText(text)
-                  image.setVisible(false)
-                  tableView.setVisible(false)
-                  textfield.setVisible(true)
-                case _ =>
-                  println("Tableview anzeigen")
-                  image.setVisible(false)
-                  textfield.setVisible(false)
+      if(fileDirectory != null) {
+        if (fileDirectory.isLeaf) {
+          val fullPath: File = fileDirectory.getValue
+          val fileCategory = FileCategory(fullPath)
+          fileCategory match {
+            case "image" =>
+              image.setImage(new Image(fullPath.toURI.toString))
+              image.setVisible(true)
+              textfield.setVisible(false)
+              tableView.setVisible(false)
+            case "text" =>
+              var text = ""
+              val bufferedSource = Source.fromFile(fullPath)
+              for (line <- bufferedSource.getLines()) {
+                text = text + "\n" + line.toString
               }
-            } else {
-              println("Tableview anzeigen")
-              tableView.setVisible(true)
-              val direcory: File = fileDirectory.getValue
-              mutableFileAttributes = mkObservableList(DataSource.addFiles(direcory.listFiles()).map(MutableFileAttributes(_)))
-              tableView.setItems(mutableFileAttributes)
-            }
+              bufferedSource.close
+              textfield.setText(text)
+              image.setVisible(false)
+              tableView.setVisible(false)
+              textfield.setVisible(true)
+            case _ =>
+              image.setVisible(false)
+              textfield.setVisible(false)
           }
-        case MouseButton.SECONDARY => printf("rechts-klick")
-       //    cm.show(tree, event.getScreenX, event.getScreenY)
+        } else {
+          tableView.setVisible(true)
+          val direcory: File = fileDirectory.getValue
+          mutableFileAttributes = mkObservableList(DataSource.addFiles(direcory.listFiles()).map(MutableFileAttributes(_)))
+          tableView.setItems(mutableFileAttributes)
+        }
       }
-
     }
   }
 
-  /**
-    * this method refreshes the treeview
-    */
   def onRefresh: Unit = {
     rootItem = createNode(new File("c:/"))
     rootItem.setExpanded(true)

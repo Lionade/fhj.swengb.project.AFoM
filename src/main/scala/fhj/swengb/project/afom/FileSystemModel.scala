@@ -56,7 +56,7 @@ object FileSystemModel {
     } catch{
       case e: FileAlreadyExistsException => println("FileAlreadyExists")
       case e: IOException => println ("something else went wrong")
-    }
+}
   }
 
   /**
@@ -86,5 +86,15 @@ object FileSystemModel {
       }
     }
     )
+  }
+
+  def createDir(path: Path): Unit = {
+    try{
+      Files.createDirectory(path)
+    }
+    catch{
+      case a: FileAlreadyExistsException => println("File mit dem Namen existiert bereits")
+      case b: IOException => println("Es ist ein Fehler aufgetreten")
+    }
   }
 }

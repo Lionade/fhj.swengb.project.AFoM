@@ -2,12 +2,13 @@ package fhj.swengb.project.afom
 
 import java.awt.event.MouseEvent
 import java.io
-import java.nio.file.{Path, Paths, Files}
+import java.nio.file.{LinkOption, Path, Paths, Files}
 import java.io.{IOException, File}
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.event.EventHandler
 import javafx.event.{EventHandler, ActionEvent}
 import javafx.scene.control.{MenuItem, ContextMenu, TreeCell, TextField}
+import javafx.scene.image.{Image, ImageView}
 import javafx.scene.input
 import javafx.scene.input._
 
@@ -28,9 +29,7 @@ class FileTreeCell[File] extends TreeCell[File]{
   var txtField: TextField = _
   var cm: ContextMenu = new ContextMenu()
 
-  /**
-    * zum Umbenennen von Items
-    */
+  //Context Einträge
   var menuRename = new MenuItem("Umbenennen")
   menuRename.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
@@ -38,9 +37,6 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
-  /**
-    * zum Kopieren von Items
-    */
   var menuCopy = new MenuItem("Kopieren")
   menuCopy.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit ={
@@ -49,9 +45,6 @@ class FileTreeCell[File] extends TreeCell[File]{
 
   })
 
-  /**
-    * zum Einfügen von Items
-    */
   var menuPaste = new MenuItem("Einfügen")
   menuPaste.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit =  {
@@ -67,9 +60,6 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
-  /**
-    * zum Ausschneiden von Items
-    */
   var menuCut = new MenuItem("Ausschneiden")
   menuCut.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
@@ -78,9 +68,6 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
-  /**
-    * zum Löschen von Items
-    */
   var menuRemove = new MenuItem("Löschen")
   menuRemove.setOnAction(new EventHandler[ActionEvent] {
     override def handle(event: ActionEvent): Unit = {
@@ -88,12 +75,17 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
-  cm.getItems().addAll(menuRename,menuCopy,menuPaste,menuCut, menuRemove)
+  var createDir = new MenuItem("Ordner erstellen")
+  createDir.setOnAction(new EventHandler[ActionEvent] {
+    override def handle(event: ActionEvent): Unit = {
+      FileSystemModel.createDir(Paths.get(getItem.toString, "Neuer Ordner"))
+    }
+  })
 
+  createDir.setVisible(false)
+  cm.getItems().addAll(createDir, menuRename,menuCopy,menuPaste,menuCut, menuRemove)
 
-  /**
-    * Cell wechselt auf änderbaren Zustand; start bei Doppel-klick
-    */
+  // Cell wechselt auf änderbaren Zustand; start bei Doppel-klick
   override def startEdit: Unit ={
     super.startEdit()
     if(txtField == null) createTextField()
@@ -106,15 +98,11 @@ class FileTreeCell[File] extends TreeCell[File]{
   // Cell schließt änderbaren Zustand
   override def cancelEdit: Unit = {
     super.cancelEdit
-    setText(getString)
+    setText(getItem.asInstanceOf[java.io.File].getName)
     setGraphic(getTreeItem.getGraphic)
   }
 
-  /**
-    * Falls File verändert wird in TextField reinschreiben
-    * @param item
-    * @param empty
-    */
+  // Falls File verändert wird in TextField reinschreiben
   override def updateItem(item: File, empty: Boolean): Unit ={
     super.updateItem(item, empty)
     if(empty){ // Wenn Item leer Text und Anzeige auf null setzen
@@ -132,14 +120,20 @@ class FileTreeCell[File] extends TreeCell[File]{
       else{
         setText(getString)
         setGraphic(getTreeItem.getGraphic)
-      //  setContextMenu(cm)
+        if(getItem.asInstanceOf[java.io.File].isDirectory) {
+          createDir.setVisible(true) // Menüitem wird nur bei Directory angezeigt
+          setContextMenu(cm)
+        }
+        else{
+          createDir.setVisible(false)
+          setContextMenu(cm)
+        }
+        chooseCorrectFileIcon
       }
     }
   }
 
-  /**
-    * Änderung des TreeItems bei Enter auf neuen Wert und bei Escape auf alten
-    */
+  // Änderung des TreeItems bei Enter auf neuen Wert und bei Escape auf alten
   def createTextField() = {
     txtField = new TextField(getString)
     txtField.setOnKeyReleased(new EventHandler[input.KeyEvent] {
@@ -148,8 +142,7 @@ class FileTreeCell[File] extends TreeCell[File]{
         if(event.getCode == KeyCode.ENTER) {
           val oldItem = getItem
           commitEdit(new java.io.File(txtField.getText()).asInstanceOf[File])
-          Files.move(Paths.get(oldItem.toString), Paths.get(getItem.toString)) // Errorhandling falls von anderer Datei benützt wird
-          //FileSystemModel.move(Paths.get(oldItem.toString), Paths.get(getItem.toString)) //Überschreibung
+          Files.move(Paths.get(oldItem.toString), Paths.get(getItem.toString))
         }
         else if(event.getCode == KeyCode.ESCAPE) cancelEdit()
       }
@@ -184,6 +177,7 @@ class FileTreeCell[File] extends TreeCell[File]{
     override def handle(event: DragEvent): Unit = {
       if(dragIndex.get() >= 0 && dragIndex.get() != getIndex && getItem.asInstanceOf[java.io.File].isDirectory) {
         setStyle("-fx-background-color: gold;")
+        getTreeItem.setExpanded(true)
       }
     }
   })
@@ -210,11 +204,47 @@ class FileTreeCell[File] extends TreeCell[File]{
     }
   })
 
-
-
-
-
   def getString: String = {
     if(getItem == null) "" else getItem.toString
   }
+
+  /**
+    * this function checks if the current Item (Treecell) type exists in one of the icon variables
+    * and sets te correct Icon in the ImageView
+    */
+
+  def chooseCorrectFileIcon():Unit = {
+    if (Files.isRegularFile(Paths.get(getItem.toString), LinkOption.NOFOLLOW_LINKS)) {
+      getItem match{
+        case image if imageTypes.exists(image.toString.contains (_) ) => setGraphic (new ImageView (new Image ("/fhj/swengb/project/AFoM/picture-icon.png") ) )
+        case word if wordTypes.exists(word.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/word-icon.png")))
+        case excel if excelTypes.exists(excel.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/excel-icon.png")))
+        case powerPoint if powerPointTypes.exists(powerPoint.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/powerpoint-icon.png")))
+        case mp3 if mp3Types.exists(mp3.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/mp3-icon.png")))
+        case video if videoTypes.exists(video.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/video-icon.png")))
+        case pdf if pdfTypes.exists(pdf.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/pdf-icon.png")))
+        case exe if exeFileTypes.exists(exe.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/file-exe-icon.png")))
+        case zip if zipTypes.exists(zip.toString.contains (_) ) => setGraphic (new ImageView (new Image("/fhj/swengb/project/AFoM/zip-icon.png")))
+        case _ => setGraphic(new ImageView(new Image("/fhj/swengb/project/AFoM/file-icon.png")))
+      }
+    }
+    else{
+      setGraphic(new ImageView(new Image("/fhj/swengb/project/AFoM/folder-icon.png")))
+    }
+  }
+
+  /**
+    * Files which should be shown with an icon
+    */
+
+  lazy val imageTypes: List[String] = List (".jpg", ".png", ".ico", ".svg", ".bmp", ".gif", ".JPG", ".PNG")
+  lazy val wordTypes: List[String] = List(".doc",".docx",".odt", ".pages")
+  lazy val excelTypes: List[String] = List(".xls",".xlsx")
+  lazy val powerPointTypes: List[String] = List(".ppt",".pptx")
+  lazy val mp3Types: List[String] = List(".mp3", ".aac" )
+  lazy val pdfTypes: List[String] = List(".pdf")
+  lazy val videoTypes: List[String] = List(".mp4",".avi",".flv", ".mkv")
+  lazy val exeFileTypes: List[String] = List(".exe",".msi", ".pkg", ".EXE")
+  lazy val zipTypes: List[String] = List(".zip", ".7z", ".rar", ".tar", ".gz")
 }
+
