@@ -178,12 +178,14 @@ class FileViewController extends Initializable {
 
         // adds file directory and table file to a full path
         val fullPath = new File(fileDirectory + "\\" + tableFile)
-        try{
-          Desktop.getDesktop.open(fullPath)
-        }
-        catch{
-          case e: IOException => e.printStackTrace()
-
+        if (fullPath.isFile){
+          try{
+            Desktop.getDesktop.open(fullPath)
+          }
+          catch{
+            case e: IOException => e.printStackTrace()
+            case b: IllegalArgumentException => b.printStackTrace()
+          }
         }
       }
     }
